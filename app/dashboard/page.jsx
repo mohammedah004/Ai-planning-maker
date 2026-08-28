@@ -35,10 +35,12 @@ export default async function DashboardPage() {
 
   const userId = await getCanonicalUserId(session.user);
   let plans = [];
+  let brands = [];
 
   try {
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      const { data, error } = await supabaseAdmin
+      // 1. Fetch plans
+      const { data: plansData, error: plansError } = await supabaseAdmin
         .from("marketing_plans")
         .select(`
           id,
@@ -61,20 +63,35 @@ export default async function DashboardPage() {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching user marketing plans:", error);
+      if (plansError) {
+        console.error("Error fetching user marketing plans:", plansError);
       } else {
-        plans = data || [];
+        plans = plansData || [];
+      }
+
+      // 2. Fetch brands
+      const { data: brandsData, error: brandsError } = await supabaseAdmin
+        .from("brand_profiles")
+        .select("id, name, product_name, product_category, is_default, created_at")
+        .eq("user_id", userId)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (brandsError) {
+        console.error("Error fetching user brand profiles:", brandsError);
+      } else {
+        brands = brandsData || [];
       }
     }
   } catch (err) {
-    console.error("Supabase plans fetch exception:", err);
+    console.error("Supabase dashboard fetch exception:", err);
   }
 
   return (
     <DashboardClient
       session={session}
       initialPlans={plans}
+      initialBrands={brands}
     />
   );
 }

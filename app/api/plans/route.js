@@ -102,23 +102,40 @@ export async function POST(request) {
     }
 
     // 3. Create the marketing_plans record
-    const { data: planRecord, error: planError } = await supabaseAdmin
+    const brandProfileId = body.brand_profile_id || null;
+
+    const planInsertPayload = {
+      user_id: userId,
+      product_name: sanitizedData.product_name,
+      product_description: sanitizedData.product_description,
+      product_category: sanitizedData.product_category,
+      target_audience: sanitizedData.target_audience,
+      problem_solved: sanitizedData.problem_solved,
+      marketing_objective: sanitizedData.marketing_objective,
+      brand_tone: sanitizedData.brand_tone,
+      website_url: sanitizedData.website_url,
+      additional_context: sanitizedData.additional_context,
+      status: "generating",
+      ...(brandProfileId ? { brand_profile_id: brandProfileId } : {}),
+    };
+
+    let { data: planRecord, error: planError } = await supabaseAdmin
       .from("marketing_plans")
-      .insert({
-        user_id: userId,
-        product_name: sanitizedData.product_name,
-        product_description: sanitizedData.product_description,
-        product_category: sanitizedData.product_category,
-        target_audience: sanitizedData.target_audience,
-        problem_solved: sanitizedData.problem_solved,
-        marketing_objective: sanitizedData.marketing_objective,
-        brand_tone: sanitizedData.brand_tone,
-        website_url: sanitizedData.website_url,
-        additional_context: sanitizedData.additional_context,
-        status: "generating",
-      })
+      .insert(planInsertPayload)
       .select("id")
       .single();
+
+    // Fallback if brand_profile_id column is not yet present in database
+    if (planError && planError.message?.includes("brand_profile_id")) {
+      delete planInsertPayload.brand_profile_id;
+      const retryInsert = await supabaseAdmin
+        .from("marketing_plans")
+        .insert(planInsertPayload)
+        .select("id")
+        .single();
+      planRecord = retryInsert.data;
+      planError = retryInsert.error;
+    }
 
     if (planError || !planRecord) {
       console.error("[API /api/plans] Database insertion error for marketing_plans:", planError);

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-  Sparkles,
   Plus,
   Calendar,
   FileSpreadsheet,
@@ -19,6 +18,7 @@ import {
   RefreshCw,
   Trash2,
   Loader2,
+  Building2,
 } from "lucide-react";
 
 const formatObjective = (obj) => {
@@ -33,9 +33,10 @@ const formatObjective = (obj) => {
   return map[obj] || obj?.replace(/_/g, " ") || "غير محدد";
 };
 
-export default function DashboardClient({ session, initialPlans }) {
+export default function DashboardClient({ session, initialPlans = [], initialBrands = [] }) {
   const router = useRouter();
   const [plans, setPlans] = useState(initialPlans);
+  const [brands, setBrands] = useState(initialBrands);
   const [deletingId, setDeletingId] = useState(null);
 
   const handleDelete = async (planId, planName) => {
@@ -62,16 +63,40 @@ export default function DashboardClient({ session, initialPlans }) {
   const inProgressCount = plans.filter((p) => p.status === "generating" || p.status === "draft").length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-blue-600 selection:text-white">
       {/* Dashboard Header */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2.5 font-bold text-lg text-white">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <span>مخطط التسويق الذكي</span>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/dashboard" className="flex items-center gap-2.5 font-extrabold text-base text-zinc-100">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">
+                AI
+              </div>
+              <span>مخطط التسويق الذكي</span>
+            </Link>
+
+            {/* Navigation tabs */}
+            <nav className="hidden md:flex items-center gap-2">
+              <Link
+                href="/dashboard"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-zinc-100 bg-zinc-800 border border-zinc-700/60"
+              >
+                الخطط التسويقية
+              </Link>
+              <Link
+                href="/brands"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors flex items-center gap-1.5"
+              >
+                <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                <span>ملفات البراند</span>
+                {brands.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 text-[10px] border border-zinc-700">
+                    {brands.length}
+                  </span>
+                )}
+              </Link>
+            </nav>
+          </div>
 
           {/* User Profile & Actions */}
           <div className="flex items-center gap-4">
@@ -81,16 +106,16 @@ export default function DashboardClient({ session, initialPlans }) {
                 <img
                   src={session.user.image}
                   alt={session.user.name || "User Avatar"}
-                  className="w-8 h-8 rounded-full border border-slate-700 object-cover"
+                  className="w-8 h-8 rounded-full border border-zinc-800 object-cover"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 flex items-center justify-center text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-200 flex items-center justify-center text-xs font-bold">
                   {session.user.name ? session.user.name.charAt(0).toUpperCase() : "م"}
                 </div>
               )}
               <div className="hidden sm:block text-right">
-                <div className="text-sm font-bold text-white leading-tight">{session.user.name || "المسوق الذكي"}</div>
-                <div className="text-xs text-slate-400 leading-tight">{session.user.email}</div>
+                <div className="text-xs font-bold text-zinc-100 leading-tight">{session.user.name || "المسوق الذكي"}</div>
+                <div className="text-[11px] text-zinc-500 leading-tight">{session.user.email}</div>
               </div>
             </div>
 
@@ -98,7 +123,7 @@ export default function DashboardClient({ session, initialPlans }) {
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
               title="تسجيل الخروج"
-              className="p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-900 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -109,209 +134,188 @@ export default function DashboardClient({ session, initialPlans }) {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome & Action Banner */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-8 border-b border-slate-900">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-8 border-b border-zinc-900">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">الخطط التسويقية</h1>
-            <p className="text-slate-400 text-sm mt-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">الخطط التسويقية</h1>
+            <p className="text-zinc-400 text-xs sm:text-sm mt-1">
               أنشئ، تابع، وصدّر خطط وجداول محتوى إنستغرام لـ 30 يوماً بكامل تفاصيلها.
             </p>
           </div>
 
-          <Link
-            href="/plans/new"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition-all shadow-md shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.99] self-start md:self-auto"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إنشاء خطة تسويقية جديدة</span>
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/brands"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-zinc-100 font-bold text-xs sm:text-sm transition-all"
+            >
+              <Building2 className="w-4 h-4 text-blue-400" />
+              <span>إدارة ملفات البراند ({brands.length})</span>
+            </Link>
+
+            <Link
+              href="/plans/new"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition-all shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إنشاء خطة جديدة</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Overview Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">
-          <div className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800/80">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">إجمالي الخطط</span>
-              <Calendar className="w-4 h-4 text-indigo-400" />
-            </div>
-            <div className="text-2xl font-extrabold text-white">{plans.length}</div>
-            <div className="text-xs text-slate-500 mt-1">حملة تسويقية تم إنشاؤها</div>
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8">
+          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
+            <span className="text-xs text-zinc-400 font-bold">إجمالي الخطط</span>
+            <div className="text-2xl font-extrabold text-zinc-100">{plans.length}</div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800/80">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">الخطط المكتملة</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            </div>
+          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
+            <span className="text-xs text-zinc-400 font-bold">الخطط المكتملة</span>
             <div className="text-2xl font-extrabold text-emerald-400">{completedCount}</div>
-            <div className="text-xs text-slate-500 mt-1">جاهزة ومصدرة لـ Google Sheets</div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800/80">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">قيد المعالجة</span>
-              <Clock className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="text-2xl font-extrabold text-amber-400">{inProgressCount}</div>
-            <div className="text-xs text-slate-500 mt-1">يجري توليدها بواسطة AI</div>
+          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
+            <span className="text-xs text-zinc-400 font-bold">قيد المعالجة</span>
+            <div className="text-2xl font-extrabold text-blue-400">{inProgressCount}</div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
+            <span className="text-xs text-zinc-400 font-bold">ملفات البراند</span>
+            <div className="text-2xl font-extrabold text-purple-400">{brands.length}</div>
           </div>
         </div>
 
-        {/* Plans List or Empty State */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">سجل الخطط</h2>
-            <span className="text-xs text-slate-400">
-              {plans.length} {plans.length === 1 ? "خطة" : "خطط"}
-            </span>
-          </div>
-
-          {plans.length === 0 ? (
-            /* Empty State */
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/20 p-12 text-center max-w-2xl mx-auto my-8">
-              <div className="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-4">
-                <FolderOpen className="w-8 h-8" />
-              </div>
-              <h3 className="text-lg font-bold text-white">لا توجد خطط تسويقية بعد</h3>
-              <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-                أدخل تفاصيل منتجك وسيقوم محرك الذكاء الاصطناعي ببناء استراتيجية كاملة وتقويم محتوى إنستغرام لـ 30 يوماً وتصدير ملف Google Sheet في أقل من 90 ثانية.
-              </p>
-              <div className="mt-6">
-                <Link
-                  href="/plans/new"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-600/20"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>أنشئ خطتك التسويقية الأولى</span>
-                </Link>
-              </div>
+        {/* Plans List / Grid */}
+        {plans.length === 0 ? (
+          /* Empty State */
+          <div className="rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 p-12 text-center max-w-xl mx-auto my-12 space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-blue-400 flex items-center justify-center mx-auto">
+              <FolderOpen className="w-7 h-7" />
             </div>
-          ) : (
-            /* Plans Table / Cards */
-            <div className="grid grid-cols-1 gap-3.5">
-              {plans.map((plan) => {
-                const sheetExport = Array.isArray(plan.google_sheet_exports)
-                  ? plan.google_sheet_exports[0]
-                  : plan.google_sheet_exports;
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-zinc-100">لا توجد خطط تسويقية بعد</h3>
+              <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+                ابدأ بإنشاء أول خطة محتوى تسويقية لـ 30 يوماً لمنتجك أو مشروعك وادعُ الذكاء الاصطناعي لإعداد الاستراتيجية كاملة.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link
+                href="/plans/new"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>أنشئ خطتك الأولى الآن</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {plans.map((plan) => {
+              const sheetExport = Array.isArray(plan.google_sheet_exports)
+                ? plan.google_sheet_exports[0]
+                : plan.google_sheet_exports;
+              const sheetUrl = sheetExport?.spreadsheet_url;
 
-                const job = Array.isArray(plan.generation_jobs)
-                  ? plan.generation_jobs[0]
-                  : plan.generation_jobs;
+              const isCompleted = plan.status === "completed";
+              const isFailed = plan.status === "failed";
+              const isGenerating = plan.status === "generating" || plan.status === "draft";
 
-                const isCompleted = plan.status === "completed" || job?.status === "completed";
-                const isFailed = plan.status === "failed" || job?.status === "failed";
-                const isGenerating = !isCompleted && !isFailed;
-                const isDeleting = deletingId === plan.id;
+              const formattedDate = plan.created_at
+                ? new Date(plan.created_at).toLocaleDateString("ar-SA", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "";
 
-                return (
-                  <div
-                    key={plan.id}
-                    className={`p-5 sm:p-6 rounded-2xl bg-slate-900/70 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-lg shadow-black/10 ${
-                      isDeleting
-                        ? "border-red-800/60 opacity-50"
-                        : "border-slate-800 hover:border-slate-700"
-                    }`}
-                  >
-                    <div className="space-y-1.5 text-right min-w-0">
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <Link
-                          href={`/plans/${plan.id}`}
-                          className="font-bold text-white text-base hover:text-indigo-400 transition-colors"
-                        >
+              return (
+                <div
+                  key={plan.id}
+                  className="rounded-2xl bg-zinc-900 border border-zinc-800/80 p-6 flex flex-col justify-between hover:border-zinc-700 transition-all text-right shadow-sm group"
+                >
+                  <div className="space-y-4">
+                    {/* Header: Title & Category */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-800 text-blue-400 font-semibold border border-zinc-700/60 inline-block">
+                          {plan.product_category}
+                        </span>
+                        <h3 className="text-lg font-bold text-zinc-100 group-hover:text-blue-400 transition-colors leading-snug">
                           {plan.product_name}
-                        </Link>
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-medium">
-                          {plan.product_category || "منتج"}
-                        </span>
+                        </h3>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                        <span>
-                          الهدف: <strong className="text-slate-300">{formatObjective(plan.marketing_objective)}</strong>
-                        </span>
-                        <span>•</span>
-                        <span>{new Date(plan.created_at).toLocaleDateString("ar-EG")}</span>
-                        {job?.current_step && isGenerating && (
-                          <>
-                            <span>•</span>
-                            <span className="text-amber-300 font-medium">{job.current_step}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2.5 self-end sm:self-center shrink-0">
-                      {/* Status indicator */}
-                      {isCompleted ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1 rounded-full font-bold">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>مكتمل</span>
-                        </span>
-                      ) : isFailed ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-red-400 bg-red-950/60 border border-red-800/60 px-3 py-1 rounded-full font-bold">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          <span>تعثر التوليد</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-indigo-300 bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full font-bold animate-pulse">
-                          <Clock className="w-3.5 h-3.5 animate-spin" />
-                          <span>جاري التوليد...</span>
-                        </span>
-                      )}
-
-                      {/* Google Sheet Direct Button */}
-                      {sheetExport?.spreadsheet_url && (
-                        <a
-                          href={sheetExport.spreadsheet_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-all hover:scale-105 shadow-sm"
-                        >
-                          <FileSpreadsheet className="w-3.5 h-3.5" />
-                          <span>فتح الشيت</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-
-                      {/* Retry Button if Failed */}
-                      {isFailed && (
-                        <Link
-                          href={`/plans/${plan.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 text-xs font-bold transition-colors"
-                        >
-                          <RefreshCw className="w-3 h-3" />
-                          <span>إعادة المحاولة</span>
-                        </Link>
-                      )}
-
-                      {/* Plan details link */}
-                      <Link
-                        href={`/plans/${plan.id}`}
-                        className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors"
-                      >
-                        <span>التفاصيل</span>
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </Link>
 
                       {/* Delete Button */}
                       <button
-                        id={`delete-plan-${plan.id}`}
+                        type="button"
                         onClick={() => handleDelete(plan.id, plan.product_name)}
-                        disabled={isDeleting}
-                        title="حذف الخطة نهائياً"
-                        className="inline-flex items-center gap-1 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-950/40 border border-transparent hover:border-red-800/40 transition-all cursor-pointer disabled:opacity-40"
+                        disabled={deletingId === plan.id}
+                        title="حذف الخطة"
+                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                       >
-                        {isDeleting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                        {deletingId === plan.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-red-400" />
                         ) : (
                           <Trash2 className="w-4 h-4" />
                         )}
                       </button>
                     </div>
+
+                    <p className="text-xs text-zinc-400">
+                      الهدف: <span className="text-zinc-300 font-semibold">{formatObjective(plan.marketing_objective)}</span>
+                    </p>
+
+                    {/* Status Badge */}
+                    <div>
+                      {isCompleted ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>الخطة مكتملة</span>
+                        </span>
+                      ) : isFailed ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-950/60 border border-red-800/60 text-red-300 text-xs font-semibold">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>تعثر التوليد</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-950/60 border border-blue-800/60 text-blue-300 text-xs font-semibold animate-pulse">
+                          <Clock className="w-3.5 h-3.5 animate-spin" />
+                          <span>جاري التوليد...</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+
+                  {/* Actions Footer */}
+                  <div className="pt-5 mt-5 border-t border-zinc-800/80 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-zinc-500 font-medium">{formattedDate}</span>
+
+                    <div className="flex items-center gap-2">
+                      {sheetUrl && (
+                        <a
+                          href={sheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-emerald-400 transition-colors"
+                          title="فتح ملف Google Sheet"
+                        >
+                          <FileSpreadsheet className="w-4 h-4" />
+                        </a>
+                      )}
+
+                      <Link
+                        href={`/plans/${plan.id}`}
+                        className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-colors"
+                      >
+                        <span>عرض التفاصيل</span>
+                        <ChevronLeft className="w-3.5 h-3.5 dir-ltr" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
   );
