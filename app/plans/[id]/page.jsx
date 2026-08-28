@@ -24,6 +24,7 @@ import PillarCards from "./components/PillarCards";
 import ContentItemCard from "./components/ContentItemCard";
 import ContentMixInsights from "./components/ContentMixInsights";
 import ShareModal from "./components/ShareModal";
+import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 
 export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -37,6 +38,8 @@ export default function PlanDetailPage({ params }) {
   const [error, setError] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelError, setCancelError] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareToken, setShareToken] = useState(null);
 
@@ -136,21 +139,27 @@ export default function PlanDetailPage({ params }) {
     }
   };
 
-  const handleCancel = async () => {
-    if (!confirm("هل أنت متأكد من إلغاء عملية التوليد؟ سيتم تحرير الحساب فوراً للبدء من جديد.")) return;
+  const handleConfirmCancel = async () => {
     setIsCancelling(true);
+    setCancelError(null);
     try {
       const res = await fetch(`/api/plans/${planId}/cancel`, { method: "POST" });
-      const json = await res.json();
-      if (json.success) {
+      let json = null;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        json = await res.json();
+      }
+
+      if (res.ok && json?.success) {
+        setShowCancelModal(false);
         router.push("/plans/new");
       } else {
-        alert(json.error?.message || "تعذر إلغاء العملية.");
-        setIsCancelling(false);
+        setCancelError(json?.error?.message || "تعذر إلغاء العملية.");
       }
     } catch (err) {
       console.error("Cancel error:", err);
-      alert("تعذر الإلغاء. يرجى المحاولة مجدداً.");
+      setCancelError("تعذر الإلغاء. يرجى المحاولة مجدداً.");
+    } finally {
       setIsCancelling(false);
     }
   };
@@ -344,7 +353,10 @@ export default function PlanDetailPage({ params }) {
                     </span>
                     <button
                       id="cancel-plan-btn"
-                      onClick={handleCancel}
+                      onClick={() => {
+                        setCancelError(null);
+                        setShowCancelModal(true);
+                      }}
                       disabled={isCancelling}
                       title="إلغاء عملية التوليد"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-red-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
@@ -545,6 +557,20 @@ export default function PlanDetailPage({ params }) {
         planId={planId}
         initialShareToken={planInfo.shareToken || planInfo.share_token || shareToken}
         onShareTokenChange={(newToken) => setShareToken(newToken)}
+      />
+
+      {/* Cancel Generation Modal */}
+      <ConfirmDeleteModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleConfirmCancel}
+        title="إلغاء عملية التوليد"
+        description="هل أنت متأكد من إلغاء عملية التوليد الجارية؟ سيتم تحرير خط المعالجة فوراً ويمكنك البدء بإنشاء خطة جديدة."
+        confirmText="إلغاء والبدء من جديد"
+        cancelText="متابعة التوليد"
+        isLoading={isCancelling}
+        error={cancelError}
+        variant="warning"
       />
     </div>
   );

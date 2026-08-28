@@ -45,16 +45,20 @@ export default function ShareModal({
       const res = await fetch(`/api/plans/${planId}/share`, {
         method: "POST",
       });
-      const json = await res.json();
+      let json = null;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        json = await res.json();
+      }
 
-      if (json.success && json.data) {
+      if (res.ok && json?.success && json?.data) {
         setShareToken(json.data.shareToken);
         setShareUrl(json.data.shareUrl);
         if (onShareTokenChange) {
           onShareTokenChange(json.data.shareToken);
         }
       } else {
-        setError(json.error?.message || "تعذر إنشاء رابط المشاركة.");
+        setError(json?.error?.message || "تعذر إنشاء رابط المشاركة.");
       }
     } catch (err) {
       console.error("[ShareModal] Error generating link:", err);
@@ -71,9 +75,13 @@ export default function ShareModal({
       const res = await fetch(`/api/plans/${planId}/share`, {
         method: "DELETE",
       });
-      const json = await res.json();
+      let json = null;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        json = await res.json();
+      }
 
-      if (json.success) {
+      if (res.ok && json?.success) {
         setShareToken(null);
         setShareUrl("");
         setConfirmRevoke(false);
@@ -81,7 +89,7 @@ export default function ShareModal({
           onShareTokenChange(null);
         }
       } else {
-        setError(json.error?.message || "تعذر إيقاف رابط المشاركة.");
+        setError(json?.error?.message || "تعذر إيقاف رابط المشاركة.");
       }
     } catch (err) {
       console.error("[ShareModal] Error revoking link:", err);

@@ -13,37 +13,41 @@ import {
   Loader2,
   Globe,
   Tag,
-  Target,
-  ExternalLink,
 } from "lucide-react";
+import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 
 export default function BrandsClient({ initialBrands = [] }) {
   const router = useRouter();
   const [brands, setBrands] = useState(initialBrands);
-  const [deletingId, setDeletingId] = useState(null);
+  const [brandToDelete, setBrandToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
-  const handleDelete = async (brandId, brandName) => {
-    if (!confirm(`هل أنت متأكد من رغبتك في حذف ملف البراند "${brandName}"؟`)) {
-      return;
-    }
-
-    setDeletingId(brandId);
+  const handleConfirmDelete = async () => {
+    if (!brandToDelete) return;
+    setIsDeleting(true);
+    setDeleteError(null);
     try {
-      const res = await fetch(`/api/brands/${brandId}`, {
+      const res = await fetch(`/api/brands/${brandToDelete.id}`, {
         method: "DELETE",
       });
-      const json = await res.json();
+      let json = null;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        json = await res.json();
+      }
 
-      if (json.success) {
-        setBrands((prev) => prev.filter((b) => b.id !== brandId));
+      if (res.ok && json?.success) {
+        setBrands((prev) => prev.filter((b) => b.id !== brandToDelete.id));
+        setBrandToDelete(null);
       } else {
-        alert(json.error?.message || "تعذر حذف ملف البراند.");
+        setDeleteError(json?.error?.message || "تعذر حذف ملف البراند.");
       }
     } catch (err) {
       console.error("Delete brand error:", err);
-      alert("حدث خطأ في الاتصال أثناء الحذف.");
+      setDeleteError("حدث خطأ في الاتصال أثناء الحذف.");
     } finally {
-      setDeletingId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -160,16 +164,14 @@ export default function BrandsClient({ initialBrands = [] }) {
 
                           <button
                             type="button"
-                            onClick={() => handleDelete(brand.id, brand.name)}
-                            disabled={deletingId === brand.id}
-                            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
+                            onClick={() => {
+                              setDeleteError(null);
+                              setBrandToDelete({ id: brand.id, name: brand.name });
+                            }}
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer"
                             title="حذف البراند"
                           >
-                            {deletingId === brand.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin text-red-400" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -241,6 +243,24 @@ export default function BrandsClient({ initialBrands = [] }) {
           )}
         </div>
       </main>
+
+      {/* Delete Confirmation Popup */}
+      <ConfirmDeleteModal
+        isOpen={Boolean(brandToDelete)}
+        onClose={() => setBrandToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="حذف ملف البراند"
+        description={
+          brandToDelete
+            ? `هل أنت متأكد من حذف ملف البراند "${brandToDelete.name}"؟ لن تؤثر عملية الحذف على الخطط السابقة المفعلة.`
+            : ""
+        }
+        confirmText="تأكيد الحذف النهائي"
+        cancelText="إلغاء"
+        isLoading={isDeleting}
+        error={deleteError}
+        variant="danger"
+      />
     </div>
   );
 }

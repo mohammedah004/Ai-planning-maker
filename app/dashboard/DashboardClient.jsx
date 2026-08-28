@@ -20,6 +20,7 @@ import {
   Loader2,
   Building2,
 } from "lucide-react";
+import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 
 const formatObjective = (obj) => {
   const map = {
@@ -37,25 +38,33 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
   const router = useRouter();
   const [plans, setPlans] = useState(initialPlans);
   const [brands, setBrands] = useState(initialBrands);
-  const [deletingId, setDeletingId] = useState(null);
+  const [planToDelete, setPlanToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
-  const handleDelete = async (planId, planName) => {
-    if (!confirm(`هل أنت متأكد من حذف خطة "${planName}"؟ سيتم حذف جميع بياناتها نهائياً.`)) return;
-
-    setDeletingId(planId);
+  const handleConfirmDelete = async () => {
+    if (!planToDelete) return;
+    setIsDeleting(true);
+    setDeleteError(null);
     try {
-      const res = await fetch(`/api/plans/${planId}`, { method: "DELETE" });
-      const json = await res.json();
-      if (json.success) {
-        setPlans((prev) => prev.filter((p) => p.id !== planId));
+      const res = await fetch(`/api/plans/${planToDelete.id}`, { method: "DELETE" });
+      let json = null;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        json = await res.json();
+      }
+
+      if (res.ok && json?.success) {
+        setPlans((prev) => prev.filter((p) => p.id !== planToDelete.id));
+        setPlanToDelete(null);
       } else {
-        alert(json.error?.message || "تعذر حذف الخطة.");
+        setDeleteError(json?.error?.message || "الخطة غير موجودة أو لا تملك صلاحية حذفها.");
       }
     } catch (err) {
       console.error("Delete error:", err);
-      alert("تعذر الحذف. يرجى المحاولة مجدداً.");
+      setDeleteError("تعذر الحذف. يرجى المحاولة مجدداً.");
     } finally {
-      setDeletingId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -217,7 +226,6 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
 
               const isCompleted = plan.status === "completed";
               const isFailed = plan.status === "failed";
-              const isGenerating = plan.status === "generating" || plan.status === "draft";
 
               const formattedDate = plan.created_at
                 ? new Date(plan.created_at).toLocaleDateString("ar-SA", {
@@ -247,16 +255,14 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                       {/* Delete Button */}
                       <button
                         type="button"
-                        onClick={() => handleDelete(plan.id, plan.product_name)}
-                        disabled={deletingId === plan.id}
+                        onClick={() => {
+                          setDeleteError(null);
+                          setPlanToDelete({ id: plan.id, name: plan.product_name });
+                        }}
                         title="حذف الخطة"
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
                       >
-                        {deletingId === plan.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-red-400" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
@@ -317,6 +323,24 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Popup */}
+      <ConfirmDeleteModal
+        isOpen={Boolean(planToDelete)}
+        onClose={() => setPlanToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="حذف الخطة التسويقية"
+        description={
+          planToDelete
+            ? `هل أنت متأكد من حذف خطة "${planToDelete.name}"؟ سيتم حذف جميع منشورات الـ 30 يوماً والتصاميم والتوجيهات البصرية المرتبطة بها نهائياً.`
+            : ""
+        }
+        confirmText="تأكيد الحذف النهائي"
+        cancelText="إلغاء"
+        isLoading={isDeleting}
+        error={deleteError}
+        variant="danger"
+      />
     </div>
   );
 }

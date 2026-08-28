@@ -3,6 +3,7 @@ import Google from "next-auth/providers/google";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  basePath: "/api/auth",
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
