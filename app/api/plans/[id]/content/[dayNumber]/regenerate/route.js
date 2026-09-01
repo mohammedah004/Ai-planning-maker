@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-guard";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 const ALLOWED_POST_TYPES = ["reel", "carousel", "static_post", "story"];
 const ALLOWED_OBJECTIVES = [
@@ -27,6 +29,7 @@ function safeJson(val, fallback = null) {
 /**
  * POST /api/plans/[id]/content/[dayNumber]/regenerate
  * Regenerates a single post for a specific day while keeping strategic context intact.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy OpenAI call)
  */
 export async function POST(request, { params }) {
   try {
@@ -43,6 +46,46 @@ export async function POST(request, { params }) {
         { status: 400 }
       );
     }
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const body = await request.json().catch(() => ({}));
+      const expressRes = await expressFetch(`/api/v1/plans/${planId}/content/${dayNumber}/regenerate`, {
+        method: "POST",
+        body,
+        authData,
+      });
+
+      if (!expressRes.ok) {
+        return NextResponse.json(expressRes.data, { status: expressRes.status });
+      }
+
+      const ed = expressRes.data?.data || {};
+
+      return NextResponse.json({
+        success: true,
+        message: expressRes.data?.message || `تمت إعادة صياغة منشور اليوم ${dayNumber} بنجاح!`,
+        data: {
+          id: ed.id,
+          dayNumber: ed.dayNumber || dayNumber,
+          caption: ed.caption,
+          designCopy: ed.designCopy || safeJson(ed.design_copy, { headline: "", subtext: "", cta: "" }),
+          postType: ed.postType || ed.post_type,
+          contentObjective: ed.contentObjective || ed.content_objective,
+          contentPillar: ed.contentPillar || ed.content_pillar,
+          designReference: ed.designReference || ed.design_reference,
+          cta: ed.cta,
+          updatedAt: ed.updatedAt || ed.updated_at,
+        },
+        remaining: ed.remaining ?? 9,
+      });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY OPENAI REGENERATION (Untouched when flag is false)
+    // -------------------------------------------------------------
 
     // 1. Rate Limiting Check (Max 10 per hour per user)
     const rateLimit = checkRateLimit(userId, 10, 60 * 60 * 1000);

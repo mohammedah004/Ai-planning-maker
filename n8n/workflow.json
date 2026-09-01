@@ -1,0 +1,883 @@
+{
+  "name": "AI Marketing Planner - Full Google Sheet Populate",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-plan",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b742b40b-f14f-4063-afd5-6777b49a5b0b",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [736, 3344],
+      "webhookId": "generate-plan"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert Instagram marketing strategist and business diagnosis advisor. Return ONLY a valid JSON object in Arabic without markdown fences.\nAnalyze this product and diagnose the marketing situation:\nProduct Name: {{ $('Webhook Trigger').item.json.body.plan.product_name }}\nDescription: {{ $('Webhook Trigger').item.json.body.plan.product_description }}\nCategory: {{ $('Webhook Trigger').item.json.body.plan.product_category }}\nTarget Audience: {{ $('Webhook Trigger').item.json.body.plan.target_audience }}\nProblem Solved: {{ $('Webhook Trigger').item.json.body.plan.problem_solved }}\nMarketing Objective: {{ $('Webhook Trigger').item.json.body.plan.marketing_objective }}\nBrand Tone: {{ $('Webhook Trigger').item.json.body.plan.brand_tone }}\nWebsite URL: {{ $('Webhook Trigger').item.json.body.plan.website_url }}\nAdditional Context: {{ $('Webhook Trigger').item.json.body.plan.additional_context }}\n\n{{ $('Webhook Trigger').item.json.body.previous_plan_summary ? `\n### الذاكرة الاستراتيجية للخطة السابقة (Brand Marketing Memory):\n- الهدف التسويقي للخطة السابقة: ${$('Webhook Trigger').item.json.body.previous_plan_summary.previous_objective || \"غير محدد\"}\n- ركائز المحتوى في الخطة السابقة: ${( $('Webhook Trigger').item.json.body.previous_plan_summary.previous_pillars || [] ).join(\" | \")}\n- ملامح التموضع السابق: ${$('Webhook Trigger').item.json.body.previous_plan_summary.previous_strategy_highlights || \"غير محدد\"}\n👉 توجيه ذاكرة البراند: ابنِ على النجاح والتموضع السابق مع تجديد ركائز وزوايا المحتوى وتقديم قيمة متراكمة وغير مكررة للجمهور.\n` : \"\" }}\n\nStrict JSON Structure:\n{\n  \"target_audience_analysis\": \"تحليل دقيق ومفصل لطبيعة وسلوك الجمهور المستهدف\",\n  \"pain_points\": [\"نقطة الألم 1\", \"نقطة الألم 2\", \"نقطة الألم 3\"],\n  \"desired_outcomes\": [\"النتيجة المرغوبة 1\", \"النتيجة المرغوبة 2\", \"النتيجة المرغوبة 3\"],\n  \"positioning\": \"صياغة واضحة لتموضع البراند ومكانته في السوق مقارنة بالمنافسين\",\n  \"messaging_angles\": [\"زاوية الخطاب 1\", \"زاوية الخطاب 2\", \"زاوية الخطاب 3\"],\n  \"cta_strategy\": \"استراتيجية الدعوة لاتخاذ الإجراء المناسبة للمنتج\",\n  \"diagnosis\": {\n    \"marketing_maturity\": \"early_stage\",\n    \"maturity_reasoning\": \"سبب تصنيف مرحلة نضج البراند باللغة العربية بناءً على المعطيات والذاكرة التراكمية\",\n    \"top_priorities\": [\"الأولوية الاستراتيجية الأولى\", \"الأولوية الثانية\", \"الأولوية الثالثة\"],\n    \"instagram_fit_score\": 8,\n    \"instagram_fit_reasoning\": \"شرح مدى ومبررات ملاءمة منصة إنستغرام لجمهور وطبيعة هذا البزنس\",\n    \"key_risks\": [\"المخاطرة أو التحدي 1\", \"المخاطرة أو التحدي 2\"],\n    \"realistic_expectations\": \"توقعات واقعية لما يمكن تحقيقه خلال خطة الـ 30 يوماً القادمة\",\n    \"strategic_assumptions\": [\"الافتراض الاستراتيجي 1\", \"الافتراض الاستراتيجي 2\"]\n  }\n}\nNote on marketing_maturity values: Choose one of: \"early_stage\" (مرحلة التأسيس والبداية), \"growing\" (مرحلة النمو والتوسع), \"established\" (مرحلة الترسخ والنضج).\ninstagram_fit_score must be an integer between 1 and 10.\nAll textual responses must be professional, high quality, and in Arabic."
+      },
+      "id": "1c01f30c-d423-4e3b-87c0-169a7da4e059",
+      "name": "Gemini: Generate Strategy",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [1360, 3344]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "bc7254b2-0695-49e7-a451-98bebe65e1c1",
+      "name": "Google Gemini Model 1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1312, 3552]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert Instagram content architect. Return ONLY a valid JSON object without markdown fences.\nBased on this strategy:\n{{ $('Gemini: Generate Strategy').item.json.text }}\n\nAnd marketing objective:{{ $('Webhook Trigger').item.json.body.plan.marketing_objective }}\n\nGenerate content pillars and objective distribution in strict JSON:\n{\n  \"content_pillars\": [\n    { \"name\": \"...\", \"description\": \"...\", \"percentage\": 25 }\n  ],\n  \"objective_distribution\": {\n    \"awareness\": 20,\n    \"education\": 20,\n    \"engagement\": 15,\n    \"trust\": 15,\n    \"social_proof\": 10,\n    \"objection_handling\": 10,\n    \"conversion\": 10\n  }\n}"
+      },
+      "id": "7ac0c5c5-aad4-4c9c-8081-69fd0bb6c2be",
+      "name": "Gemini: Generate Pillars",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [1808, 3232]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "4424b23b-e513-43d7-b27e-b2df956da629",
+      "name": "Google Gemini Model 2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1872, 3536]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a master social media copywriter. Output ONLY valid strict JSON without markdown formatting fences.\nGenerate a 30-day Instagram calendar:\nProduct: {{ $('Webhook Trigger').item.json.body.plan.product_name }}\nBrand Tone: {{ $('Webhook Trigger').item.json.body.plan.brand_tone }}\nStrategy: {{ $('Gemini: Generate Strategy').item.json.text }}\nPillars: {{ $('Gemini: Generate Pillars').item.json.text }}\n\nReturn strict JSON with key \"content_items\" (30 items, days 1-30). Schema for each item:\n{\n  \"day_number\": 1,\n  \"caption\": \"...\",\n  \"design_copy\": {\"headline\": \"...\", \"subtext\": \"...\", \"cta\": \"...\"},\n  \"post_type\": \"reel\",\n  \"content_objective\": \"awareness\",\n  \"content_pillar\": \"...\",\n  \"design_reference\": \"Subject, Composition, Environment, Mood\",\n  \"cta\": \"...\"\n}\n(post_type: reel, carousel, static_post, story. content_objective: awareness, education, engagement, trust, social_proof, objection_handling, conversion)."
+      },
+      "id": "4f132d91-9455-4a3d-ae19-9b39b0f5dc5b",
+      "name": "Gemini: 30-Day Calendar",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [2288, 3344]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "c4358650-c4d0-4560-91fd-b34bb5dccbd0",
+      "name": "Google Gemini Model 3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [2288, 3552]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Pipeline started for plan {{$json.body.planId}}\"\n}",
+        "options": {}
+      },
+      "id": "9ac891ea-0cca-4e13-8881-4b2c4fe3a027",
+      "name": "Respond 200 OK1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [944, 3344]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "generation_jobs",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "generating_strategy"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "Analyzing market, target audience, and positioning with Gemini..."
+            },
+            {
+              "fieldId": "started_at",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "7c882e39-75aa-45e2-9646-6d53bfd6284f",
+      "name": "Supabase: Status -> Strategy1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1136, 3344]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "generation_jobs",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "generating_pillars"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "Structuring content pillars and objective weights..."
+            }
+          ]
+        }
+      },
+      "id": "7c28ffdd-7cc0-4f9a-b490-62addaef84b6",
+      "name": "Supabase: Status -> Pillars1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1664, 3344]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "generation_jobs",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "generating_content"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "Drafting 30-day calendar with captions and creative directions..."
+            }
+          ]
+        }
+      },
+      "id": "6f4cdd02-1abd-48e8-9da9-4e3a1573b1e7",
+      "name": "Supabase: Status -> Content1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2064, 3344]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب المعرفات من نود الـ Webhook بأمان\nconst webhookBody = $('Webhook Trigger').first().json.body || {};\nconst planId = webhookBody.planId || null;\nconst userId = webhookBody.userId || null;\n\n// 2. جلب النص الخام من مخرج Gemini\nlet raw = $('Gemini: 30-Day Calendar').first().json.text || '';\n\n// 3. تنظيف النص واستخراج الـ JSON بدقة\nif (typeof raw === 'string') {\n  raw = raw.trim();\n  const jsonMatch = raw.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    raw = jsonMatch[0];\n  }\n}\n\n// 4. التحقق والتحويل إلى Object\nlet parsed = {};\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (error) {\n  throw new Error(`فشل في تحويل استجابة Gemini إلى JSON: ${error.message}`);\n}\n\nconst items = Array.isArray(parsed.content_items) ? parsed.content_items : [];\n\n// 5. إرجاع العناصر مجهزة للإدخال في قاعدة البيانات\nreturn items.map((item, index) => ({\n  json: {\n    marketing_plan_id: planId,\n    user_id: userId,\n    day_number: item.day_number || (index + 1),\n    caption: item.caption || '',\n    design_copy: item.design_copy || {},\n    post_type: (item.post_type || 'static_post').toLowerCase().trim(),\n    content_objective: (item.content_objective || 'awareness').toLowerCase().trim(),\n    content_pillar: item.content_pillar || 'عام',\n    design_reference: item.design_reference || '',\n    cta: item.cta || (item.design_copy && item.design_copy.cta) || ''\n  }\n}));"
+      },
+      "id": "12dbe2d9-1cbb-42fb-afee-55ac77b9047a",
+      "name": "Format Items for Insert1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2560, 3184]
+    },
+    {
+      "parameters": {
+        "tableId": "content_items",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "marketing_plan_id",
+              "fieldValue": "={{ $json.marketing_plan_id }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.user_id }}"
+            },
+            {
+              "fieldId": "day_number",
+              "fieldValue": "={{ $json.day_number }}"
+            },
+            {
+              "fieldId": "caption",
+              "fieldValue": "={{ $json.caption }}"
+            },
+            {
+              "fieldId": "design_copy",
+              "fieldValue": "={{ JSON.stringify($json.design_copy) }}"
+            },
+            {
+              "fieldId": "post_type",
+              "fieldValue": "={{ $json.post_type }}"
+            },
+            {
+              "fieldId": "content_objective",
+              "fieldValue": "={{ $json.content_objective }}"
+            },
+            {
+              "fieldId": "content_pillar",
+              "fieldValue": "={{ $json.content_pillar }}"
+            },
+            {
+              "fieldId": "design_reference",
+              "fieldValue": "={{ $json.design_reference }}"
+            },
+            {
+              "fieldId": "cta",
+              "fieldValue": "={{ $json.cta }}"
+            }
+          ]
+        }
+      },
+      "id": "504bd218-4aa5-4e2c-8145-262a551a9c24",
+      "name": "Supabase: Insert Items1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2720, 3344]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "marketing_plans",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "strategy",
+              "fieldValue": "={{ JSON.stringify(JSON.parse($('Gemini: Generate Strategy').item.json.text.replace(/^```json\\s*/, '').replace(/```\\s*$/, '').trim())) }}"
+            },
+            {
+              "fieldId": "content_pillars",
+              "fieldValue": "={{ JSON.stringify(JSON.parse($('Gemini: Generate Pillars').item.json.text.replace(/^```json\\s*/, '').replace(/```\\s*$/, '').trim()).content_pillars) }}"
+            },
+            {
+              "fieldId": "objective_distribution",
+              "fieldValue": "={{ JSON.stringify(JSON.parse($('Gemini: Generate Pillars').item.json.text.replace(/^```json\\s*/, '').replace(/```\\s*$/, '').trim()).objective_distribution) }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "completed"
+            }
+          ]
+        }
+      },
+      "id": "dba8b216-177f-4c00-b43d-23ad35b8dcdb",
+      "name": "Supabase: Update Plan1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2944, 3344]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "generation_jobs",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "exporting_sheet"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "Creating and formatting Google Sheets deliverable..."
+            }
+          ]
+        }
+      },
+      "id": "b7558d84-1a4b-432a-b808-a7bfa509b47f",
+      "name": "Supabase: Status -> Export1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [3168, 3344]
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "={{ $('Webhook Trigger').item.json.body.plan.product_name }}— 30-Day Content Plan",
+        "options": {}
+      },
+      "id": "f3764fba-db9b-4886-b098-9b28c3f10bb9",
+      "name": "Google Sheets: Create File",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [3376, 3360],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Format Items for Insert1').all();\n\nreturn items.map(item => {\n  const row = item.json;\n  return {\n    json: {\n      \"Day\": row.day_number,\n      \"Post Type\": (row.post_type || '').toUpperCase(),\n      \"Objective\": row.content_objective,\n      \"Pillar\": row.content_pillar,\n      \"Headline\": row.design_copy?.headline || '',\n      \"Caption\": row.caption,\n      \"Design Reference\": row.design_reference,\n      \"Call To Action\": row.cta\n    }\n  };\n});"
+      },
+      "id": "23df3209-acdd-440d-939f-63949d850375",
+      "name": "Prepare 30 Rows for Sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3552, 3360]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Google Sheets: Create File').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "0",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            { "id": "Day", "displayName": "Day", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Post Type", "displayName": "Post Type", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Objective", "displayName": "Objective", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Pillar", "displayName": "Pillar", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Headline", "displayName": "Headline", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Caption", "displayName": "Caption", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Design Reference", "displayName": "Design Reference", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false },
+            { "id": "Call To Action", "displayName": "Call To Action", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b9cc7b63-be9e-4cc1-8820-c222d78627c2",
+      "name": "Google Sheets: Append 30 Days",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [3776, 3360]
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Google Sheets: Create File').item.json.spreadsheetId }}",
+          "mode": ""
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "writer",
+            "type": "user",
+            "emailAddress": "={{ $('Webhook Trigger').item.json.body.userEmail }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "c907952a-210e-44a3-af13-2a613a2100da",
+      "name": "Google Drive: Share with User1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [4000, 3328]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "google_sheet_exports",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "marketing_plan_id",
+              "fieldValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Webhook Trigger').item.json.body.userId }}"
+            },
+            {
+              "fieldId": "spreadsheet_id",
+              "fieldValue": "={{ $('Google Sheets: Create File').item.json.spreadsheetId }}"
+            },
+            {
+              "fieldId": "spreadsheet_url",
+              "fieldValue": "={{ $('Google Sheets: Create File').item.json.spreadsheetUrl }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "completed"
+            }
+          ]
+        }
+      },
+      "id": "b30cfb7c-b7d7-4691-a7c6-a6af161ee6da",
+      "name": "Supabase: Save Sheet Export1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [4224, 3328]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "generation_jobs",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook Trigger').item.json.body.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "completed"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "Plan generated and exported successfully."
+            },
+            {
+              "fieldId": "completed_at",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "1e5c373e-4172-4907-b4ec-1b1d223981ef",
+      "name": "Supabase: Complete Job1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [4448, 3328]
+    },
+    {
+      "parameters": {},
+      "id": "1dcfd46c-c9ea-40fa-b06d-ae24c9d31c10",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [736, 3808]
+    },
+    {
+      "parameters": {
+        "jsCode": "let planId = null;\nlet jobId = null;\nlet userId = null;\n\ntry {\n  const webhookData = $('Webhook Trigger').first()?.json?.body || {};\n  planId = webhookData.planId || null;\n  jobId = webhookData.jobId || null;\n  userId = webhookData.userId || null;\n} catch (e) {}\n\nconst execution = $json.execution || {};\nconst error = execution.error || {};\nconst errorMessage = error.message || 'Workflow execution encountered an unexpected error.';\nconst lastNode = execution.lastNodeExecuted || 'Unknown Node';\n\nreturn [{\n  json: {\n    planId,\n    jobId,\n    userId,\n    lastNode,\n    errorMessage: `[Failed at ${lastNode}] ${errorMessage}`,\n    failedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "82b6505e-92c3-4975-a92d-f113e7b92983",
+      "name": "Catch Error: Format Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 3808]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "generation_jobs",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "failed"
+            },
+            {
+              "fieldId": "error_message",
+              "fieldValue": "={{ $json.errorMessage }}"
+            },
+            {
+              "fieldId": "completed_at",
+              "fieldValue": "={{ $json.failedAt }}"
+            }
+          ]
+        }
+      },
+      "id": "6d22363c-9bcb-425c-b89b-460f298f02b4",
+      "name": "Catch: Mark Job Failed",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1200, 3808]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "marketing_plans",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "failed"
+            }
+          ]
+        }
+      },
+      "id": "cb91c474-93f1-4e66-ab0a-069f65fe89da",
+      "name": "Catch: Mark Plan Failed",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1440, 3808]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "google_sheet_exports",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "marketing_plan_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.planId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "failed"
+            },
+            {
+              "fieldId": "error_message",
+              "fieldValue": "={{ $json.errorMessage }}"
+            }
+          ]
+        }
+      },
+      "id": "fedc1c0d-e8e7-43bd-b400-676a480785c4",
+      "name": "Catch: Mark Export Failed",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1680, 3808]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 OK1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model 1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gemini: Generate Strategy",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini: Generate Strategy": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Status -> Pillars1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gemini: Generate Pillars",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini: Generate Pillars": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Status -> Content1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model 3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gemini: 30-Day Calendar",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini: 30-Day Calendar": {
+      "main": [
+        [
+          {
+            "node": "Format Items for Insert1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 200 OK1": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Status -> Strategy1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Status -> Strategy1": {
+      "main": [
+        [
+          {
+            "node": "Gemini: Generate Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Status -> Pillars1": {
+      "main": [
+        [
+          {
+            "node": "Gemini: Generate Pillars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Status -> Content1": {
+      "main": [
+        [
+          {
+            "node": "Gemini: 30-Day Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Items for Insert1": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Insert Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Insert Items1": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Update Plan1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Update Plan1": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Status -> Export1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Status -> Export1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Create File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive: Share with User1": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Save Sheet Export1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase: Save Sheet Export1": {
+      "main": [
+        [
+          {
+            "node": "Supabase: Complete Job1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets: Create File": {
+      "main": [
+        [
+          {
+            "node": "Prepare 30 Rows for Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare 30 Rows for Sheet": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Append 30 Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets: Append 30 Days": {
+      "main": [
+        [
+          {
+            "node": "Google Drive: Share with User1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Catch Error: Format Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catch Error: Format Info": {
+      "main": [
+        [
+          {
+            "node": "Catch: Mark Job Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catch: Mark Job Failed": {
+      "main": [
+        [
+          {
+            "node": "Catch: Mark Plan Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catch: Mark Plan Failed": {
+      "main": [
+        [
+          {
+            "node": "Catch: Mark Export Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

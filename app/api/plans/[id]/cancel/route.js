@@ -1,6 +1,6 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
+import { requireAuth } from "@/lib/auth-guard";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 /**
  * POST /api/plans/[id]/cancel
@@ -9,16 +9,11 @@ import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
  */
 export async function POST(request, { params }) {
   try {
-    const session = await auth();
-    if (!session?.user?.id && !session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "يجب تسجيل الدخول لإلغاء الخطة." } },
-        { status: 401 }
-      );
-    }
+    const { authData, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
 
+    const { userId } = authData;
     const { id: planId } = await params;
-    const userId = await getCanonicalUserId(session.user);
 
     // Verify ownership
     const { data: plan, error: fetchErr } = await supabaseAdmin
@@ -68,7 +63,7 @@ export async function POST(request, { params }) {
     }
 
     console.log(`[POST /api/plans/:id/cancel] Plan ${planId} cancelled by user ${userId}`);
-    return NextResponse.json({ success: true, message: "تم إلغاء عملية التوليد وتحرير القفل." });
+    return NextResponse.json({ success: true, message: "تم إلغاء عملية التوليد وتحرير القفل بنجاح." });
   } catch (err) {
     console.error("[POST /api/plans/:id/cancel] Unhandled exception:", err);
     return NextResponse.json(

@@ -22,11 +22,16 @@ import {
   RotateCcw,
   Plus,
 } from "lucide-react";
+import { pingBackendHealth } from "@/lib/backend-health";
 
 function PlanFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryBrandId = searchParams.get("brandId");
+
+  useEffect(() => {
+    pingBackendHealth();
+  }, []);
 
   const [brands, setBrands] = useState([]);
   const [selectedBrandId, setSelectedBrandId] = useState("");

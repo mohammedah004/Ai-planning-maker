@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -18,18 +18,31 @@ import {
   Compass,
   Filter,
   Share2,
+  Sparkles,
+  ShieldCheck,
+  Activity,
 } from "lucide-react";
+import DiagnosisViewer from "./components/DiagnosisViewer";
+import PlanComparisonViewer from "./components/PlanComparisonViewer";
+import StrategicWarnings from "./components/StrategicWarnings";
 import StrategyViewer from "./components/StrategyViewer";
 import PillarCards from "./components/PillarCards";
 import ContentItemCard from "./components/ContentItemCard";
 import ContentMixInsights from "./components/ContentMixInsights";
 import ShareModal from "./components/ShareModal";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
+import { detectStrategicWarnings } from "@/lib/strategic-warnings";
+import { computeStrategyConfidenceScore } from "@/lib/strategic-rationale";
+import { pingBackendHealth } from "@/lib/backend-health";
 
 export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
   const planId = resolvedParams.id;
   const router = useRouter();
+
+  useEffect(() => {
+    pingBackendHealth();
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [statusData, setStatusData] = useState(null);
@@ -43,8 +56,8 @@ export default function PlanDetailPage({ params }) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareToken, setShareToken] = useState(null);
 
-  // Viewer state: "calendar" | "insights" | "strategy" | "pillars"
-  const [activeTab, setActiveTab] = useState("calendar");
+  // Viewer state: "diagnosis" | "calendar" | "insights" | "strategy" | "pillars"
+  const [activeTab, setActiveTab] = useState("diagnosis");
   const [formatFilter, setFormatFilter] = useState("all");
 
   useEffect(() => {
@@ -167,8 +180,8 @@ export default function PlanDetailPage({ params }) {
   const steps = [
     {
       id: "strategy",
-      label: "المرحلة 1: تحليل الاستراتيجية والجمهور",
-      description: "استخراج نقاط الألم والمحفزات النفسية وزوايا التموضع الفريدة",
+      label: "المرحلة 1: التشخيص الاستراتيجي والجمهور",
+      description: "تشخيص مرحلة النضج، استخراج نقاط الألم، والتموضع الفريد",
       activeStates: ["generating_strategy"],
       completedStates: ["generating_pillars", "generating_content", "exporting_sheet", "completed"],
     },
@@ -203,6 +216,16 @@ export default function PlanDetailPage({ params }) {
   const planInfo = contentData?.plan || statusData?.plan || {};
   const allContentItems = contentData?.contentItems || [];
 
+  // Deterministic Engines
+  const confidenceScore = useMemo(() => {
+    return computeStrategyConfidenceScore(planInfo, null);
+  }, [planInfo]);
+
+  const strategicWarnings = useMemo(() => {
+    if (!isCompleted) return [];
+    return detectStrategicWarnings(planInfo, allContentItems);
+  }, [isCompleted, planInfo, allContentItems]);
+
   const handleItemUpdate = (updatedItem) => {
     setContentData((prev) => {
       if (!prev || !prev.contentItems) return prev;
@@ -230,7 +253,8 @@ export default function PlanDetailPage({ params }) {
             <span>لوحة التحكم</span>
           </Link>
           <div className="flex items-center gap-2 text-xs text-blue-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full font-bold">
-            <span>مخطط التسويق الذكي</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>محرك الذكاء الاستراتيجي</span>
           </div>
         </div>
       </header>
@@ -266,6 +290,23 @@ export default function PlanDetailPage({ params }) {
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-blue-400 font-bold">
                     {planInfo.productCategory || planInfo.product_category}
                   </span>
+
+                  {/* Strategy Confidence Score Badge */}
+                  {isCompleted && (
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${
+                        confidenceScore.score >= 8
+                          ? "bg-emerald-950/70 border-emerald-800 text-emerald-300"
+                          : confidenceScore.score >= 6
+                          ? "bg-blue-950/70 border-blue-800 text-blue-300"
+                          : "bg-amber-950/70 border-amber-800 text-amber-300"
+                      }`}
+                      title={confidenceScore.grade}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>ثقة الاستراتيجية: {confidenceScore.score}/10</span>
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-zinc-400 mt-1.5">
                   الهدف التسويقي: <strong className="text-zinc-200">{(planInfo.marketingObjective || planInfo.marketing_objective)?.replace(/_/g, " ")}</strong>
@@ -316,6 +357,11 @@ export default function PlanDetailPage({ params }) {
                 )}
               </div>
             </div>
+
+            {/* Strategic Warnings Box (Deterministic Engine) */}
+            {isCompleted && strategicWarnings.length > 0 && (
+              <StrategicWarnings warnings={strategicWarnings} />
+            )}
 
             {/* Failure Box */}
             {isFailed && (
@@ -420,6 +466,19 @@ export default function PlanDetailPage({ params }) {
                 <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3">
                   <button
                     type="button"
+                    onClick={() => setActiveTab("diagnosis")}
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      activeTab === "diagnosis"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>التشخيص الاستراتيجي (Diagnosis)</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setActiveTab("calendar")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "calendar"
@@ -470,7 +529,26 @@ export default function PlanDetailPage({ params }) {
                   </button>
                 </div>
 
-                {/* Tab 1: 30-Day Content Calendar */}
+                {/* Tab 1: Strategic Business Diagnosis & Memory Comparison */}
+                {activeTab === "diagnosis" && (
+                  <div className="space-y-6">
+                    <DiagnosisViewer
+                      strategy={contentData?.strategy}
+                      plan={planInfo}
+                      onSwitchTab={(tab) => setActiveTab(tab)}
+                    />
+
+                    {/* Phase 2: Brand Memory Plan Comparison */}
+                    <PlanComparisonViewer
+                      currentPlan={planInfo}
+                      previousPlan={contentData?.memory?.previousPlan}
+                      currentItems={allContentItems}
+                      previousItems={contentData?.memory?.previousItems || []}
+                    />
+                  </div>
+                )}
+
+                {/* Tab 2: 30-Day Content Calendar */}
                 {activeTab === "calendar" && (
                   <div className="space-y-6">
                     {/* Format Filter Bar */}
@@ -530,17 +608,17 @@ export default function PlanDetailPage({ params }) {
                   </div>
                 )}
 
-                {/* Tab 2: Content Mix Intelligence */}
+                {/* Tab 3: Content Mix Intelligence */}
                 {activeTab === "insights" && (
                   <ContentMixInsights contentItems={allContentItems} />
                 )}
 
-                {/* Tab 3: Strategy & Audience Analysis */}
+                {/* Tab 4: Strategy & Audience Analysis */}
                 {activeTab === "strategy" && (
                   <StrategyViewer strategy={contentData?.strategy} plan={planInfo} />
                 )}
 
-                {/* Tab 4: Content Pillars */}
+                {/* Tab 5: Content Pillars */}
                 {activeTab === "pillars" && (
                   <PillarCards pillars={contentData?.pillars} />
                 )}

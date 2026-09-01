@@ -1,24 +1,45 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
+import { requireAuth } from "@/lib/auth-guard";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 /**
  * DELETE /api/plans/[id]
  * Deletes a plan and ALL related records for the authenticated user.
  * Order: content_items → google_sheet_exports → generation_jobs → marketing_plans
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB cascading delete)
  */
 export async function DELETE(request, { params }) {
   try {
-    const session = await auth();
-    if (!session?.user?.id && !session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "يجب تسجيل الدخول لحذف الخطة." } },
-        { status: 401 }
-      );
+    const { authData, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
+
+    const { userId } = authData;
+    const { id: planId } = await params;
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch(`/api/v1/plans/${planId}`, {
+        method: "DELETE",
+        authData,
+      });
+
+      if (!expressRes.ok) {
+        return NextResponse.json(expressRes.data, { status: expressRes.status });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: expressRes.data?.message || "تم حذف الخطة وجميع بياناتها بنجاح.",
+      });
     }
 
-    const { id: planId } = await params;
-    const userId = await getCanonicalUserId(session.user);
+    // -------------------------------------------------------------
+    // LEGACY CASCADING DELETE PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
 
     // Verify ownership before deleting
     const { data: plan, error: fetchErr } = await supabaseAdmin

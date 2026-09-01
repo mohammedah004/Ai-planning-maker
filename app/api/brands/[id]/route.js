@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-guard";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { validateBrandInput } from "@/lib/validations/brand";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 /**
  * GET /api/brands/[id]
  * Retrieves a single brand profile owned by the authenticated user.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB query)
  */
 export async function GET(request, { params }) {
   try {
@@ -15,6 +18,20 @@ export async function GET(request, { params }) {
     const { userId } = authData;
     const { id: brandId } = await params;
 
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch(`/api/v1/brands/${brandId}`, {
+        method: "GET",
+        authData,
+      });
+      return NextResponse.json(expressRes.data, { status: expressRes.status });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY SUPABASE QUERY PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
     const { data: brand, error } = await supabaseAdmin
       .from("brand_profiles")
       .select("*")
@@ -42,6 +59,7 @@ export async function GET(request, { params }) {
 /**
  * PUT /api/brands/[id]
  * Updates an existing brand profile owned by the authenticated user.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB update)
  */
 export async function PUT(request, { params }) {
   try {
@@ -51,6 +69,22 @@ export async function PUT(request, { params }) {
     const { userId } = authData;
     const { id: brandId } = await params;
     const body = await request.json();
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch(`/api/v1/brands/${brandId}`, {
+        method: "PUT",
+        body,
+        authData,
+      });
+      return NextResponse.json(expressRes.data, { status: expressRes.status });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY SUPABASE UPDATE PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
 
     // 1. Verify ownership first
     const { data: existingBrand, error: fetchError } = await supabaseAdmin
@@ -140,6 +174,7 @@ export async function PUT(request, { params }) {
 /**
  * DELETE /api/brands/[id]
  * Deletes a brand profile owned by the authenticated user.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB delete)
  */
 export async function DELETE(request, { params }) {
   try {
@@ -149,7 +184,20 @@ export async function DELETE(request, { params }) {
     const { userId } = authData;
     const { id: brandId } = await params;
 
-    // Verify ownership and delete
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch(`/api/v1/brands/${brandId}`, {
+        method: "DELETE",
+        authData,
+      });
+      return NextResponse.json(expressRes.data, { status: expressRes.status });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY SUPABASE DELETE PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
     const { error } = await supabaseAdmin
       .from("brand_profiles")
       .delete()

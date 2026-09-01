@@ -14,7 +14,9 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
+import DiagnosisViewer from "@/app/plans/[id]/components/DiagnosisViewer";
 import StrategyViewer from "@/app/plans/[id]/components/StrategyViewer";
 import PillarCards from "@/app/plans/[id]/components/PillarCards";
 import ContentItemCard from "@/app/plans/[id]/components/ContentItemCard";
@@ -24,7 +26,7 @@ export default function PublicPlanViewer({ token }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("calendar");
+  const [activeTab, setActiveTab] = useState("diagnosis");
   const [formatFilter, setFormatFilter] = useState("all");
 
   useEffect(() => {
@@ -197,6 +199,19 @@ export default function PublicPlanViewer({ token }) {
         <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3">
           <button
             type="button"
+            onClick={() => setActiveTab("diagnosis")}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === "diagnosis"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>التشخيص الاستراتيجي (Diagnosis)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab("calendar")}
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === "calendar"
@@ -248,7 +263,16 @@ export default function PublicPlanViewer({ token }) {
           </button>
         </div>
 
-        {/* Tab 1: 30-Day Content Calendar */}
+        {/* Tab 1: Strategic Business Diagnosis */}
+        {activeTab === "diagnosis" && (
+          <DiagnosisViewer
+            strategy={strategy}
+            plan={plan}
+            onSwitchTab={(tab) => setActiveTab(tab)}
+          />
+        )}
+
+        {/* Tab 2: 30-Day Content Calendar */}
         {activeTab === "calendar" && (
           <div className="space-y-6">
             {/* Format Filtering bar */}
@@ -303,17 +327,17 @@ export default function PublicPlanViewer({ token }) {
           </div>
         )}
 
-        {/* Tab 2: Content Mix Analytics */}
+        {/* Tab 3: Content Mix Analytics */}
         {activeTab === "insights" && (
           <ContentMixInsights contentItems={contentItems} />
         )}
 
-        {/* Tab 3: Strategy & Audience Analysis */}
+        {/* Tab 4: Strategy & Audience Analysis */}
         {activeTab === "strategy" && (
           <StrategyViewer strategy={strategy} plan={plan} />
         )}
 
-        {/* Tab 4: Content Pillars */}
+        {/* Tab 5: Content Pillars */}
         {activeTab === "pillars" && (
           <PillarCards pillars={pillars} />
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -21,6 +21,7 @@ import {
   Building2,
 } from "lucide-react";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
+import { pingBackendHealth } from "@/lib/backend-health";
 
 const formatObjective = (obj) => {
   const map = {
@@ -41,6 +42,10 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
   const [planToDelete, setPlanToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+
+  useEffect(() => {
+    pingBackendHealth();
+  }, []);
 
   const handleConfirmDelete = async () => {
     if (!planToDelete) return;

@@ -1,31 +1,69 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
+import { requireAuth } from "@/lib/auth-guard";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 /**
  * GET /api/plans/[id]/status
  * Polling endpoint to check live generation job status and Google Sheet export URL.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB polling)
  */
 export async function GET(request, { params }) {
   try {
-    const session = await auth();
+    const { authData, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
 
-    if (!session?.user?.id && !session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "You must be signed in." } },
-        { status: 401 }
-      );
-    }
-
-    const userId = await getCanonicalUserId(session.user);
+    const { userId } = authData;
     const { id: planId } = await params;
 
     if (!planId) {
       return NextResponse.json(
-        { success: false, error: { code: "INVALID_REQUEST", message: "Plan ID is required." } },
+        { success: false, error: { code: "INVALID_REQUEST", message: "معرف الخطة مطلوب." } },
         { status: 400 }
       );
     }
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch(`/api/v1/plans/${planId}/status`, {
+        method: "GET",
+        authData,
+      });
+
+      if (!expressRes.ok) {
+        return NextResponse.json(expressRes.data, { status: expressRes.status });
+      }
+
+      const ed = expressRes.data?.data || {};
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          plan: {
+            id: ed.planId,
+            status: ed.planStatus,
+          },
+          job: {
+            id: ed.planId,
+            status: ed.jobStatus,
+            current_step: ed.currentStep,
+            error_message: ed.errorMessage,
+          },
+          export: {
+            spreadsheet_url: ed.spreadsheetUrl,
+            status: ed.exportStatus,
+            error_message: ed.exportErrorMessage,
+          },
+        },
+      });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY SUPABASE POLLING QUERY (Untouched when flag is false)
+    // -------------------------------------------------------------
 
     // Fetch plan verifying ownership
     const { data: plan, error: planError } = await supabaseAdmin
@@ -65,7 +103,7 @@ export async function GET(request, { params }) {
 
     if (planError || !plan) {
       return NextResponse.json(
-        { success: false, error: { code: "NOT_FOUND", message: "Marketing plan not found or unauthorized." } },
+        { success: false, error: { code: "NOT_FOUND", message: "الخطة التسويقية غير موجودة أو غير مصرح لك بالوصول إليها." } },
         { status: 404 }
       );
     }
@@ -110,7 +148,7 @@ export async function GET(request, { params }) {
   } catch (err) {
     console.error("[API /api/plans/[id]/status] Unhandled exception:", err);
     return NextResponse.json(
-      { success: false, error: { code: "SERVER_ERROR", message: "Failed to poll generation status." } },
+      { success: false, error: { code: "SERVER_ERROR", message: "حدث خطأ غير متوقع أثناء الاستعلام عن حالة الخطة." } },
       { status: 500 }
     );
   }

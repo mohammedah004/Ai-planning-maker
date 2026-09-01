@@ -10,18 +10,28 @@ import {
   Star,
   Edit,
   Trash2,
-  Loader2,
   Globe,
   Tag,
+  History,
+  Sparkles,
+  Calendar,
+  Layers,
+  ArrowLeft,
+  X,
+  TrendingUp,
+  CheckCircle2,
 } from "lucide-react";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
+import { aggregateBrandInsights } from "@/lib/brand-insights";
 
-export default function BrandsClient({ initialBrands = [] }) {
+export default function BrandsClient({ initialBrands = [], initialPlans = [] }) {
   const router = useRouter();
   const [brands, setBrands] = useState(initialBrands);
+  const [plans, setPlans] = useState(initialPlans);
   const [brandToDelete, setBrandToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  const [activeMemoryBrand, setActiveMemoryBrand] = useState(null);
 
   const handleConfirmDelete = async () => {
     if (!brandToDelete) return;
@@ -83,11 +93,11 @@ export default function BrandsClient({ initialBrands = [] }) {
           <div>
             <div className="flex items-center gap-2 text-blue-400 text-sm font-bold mb-1">
               <Building2 className="w-4 h-4" />
-              <span>ذاكرة البراند الذكية</span>
+              <span>ذاكرة البراند الذكية (Brand Memory Engine)</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">ملفات البراند المحفوظة</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">ملفات البراند والذاكرة الاستراتيجية</h1>
             <p className="text-zinc-400 text-xs sm:text-sm mt-1">
-              احفظ معلومات منتجاتك وجمهورك مرة واحدة، وأنشئ خطط تسويقية شهرية بنقرة زر بدون إعادة إدخال البيانات في كل مرة.
+              احفظ معلومات منتجاتك مرة واحدة، وتابع تطور الخطط التسويقية الشهرية المتراكمة لنفس البراند بدون تكرار.
             </p>
           </div>
         </div>
@@ -124,6 +134,9 @@ export default function BrandsClient({ initialBrands = [] }) {
                   : typeof brand.brand_tone === "string"
                   ? [brand.brand_tone]
                   : [];
+
+                const brandPlans = plans.filter((p) => p.brand_profile_id === brand.id);
+                const insights = aggregateBrandInsights(brandPlans, []);
 
                 return (
                   <div
@@ -176,6 +189,18 @@ export default function BrandsClient({ initialBrands = [] }) {
                         </div>
                       </div>
 
+                      {/* Brand Memory Metrics Pill Row */}
+                      <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                        <div className="p-2.5 rounded-xl bg-zinc-950/70 border border-zinc-800/80">
+                          <span className="block text-[10px] text-zinc-500 font-bold">الخطط المنشأة</span>
+                          <span className="text-sm font-extrabold text-blue-400">{insights.plansCount} خطط</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-zinc-950/70 border border-zinc-800/80">
+                          <span className="block text-[10px] text-zinc-500 font-bold">إجمالي المنشورات</span>
+                          <span className="text-sm font-extrabold text-emerald-400">{insights.totalPostsCount} منشور</span>
+                        </div>
+                      </div>
+
                       {/* Category & Tone Chips */}
                       <div className="space-y-2 pt-1">
                         <div className="flex items-center gap-1.5 text-xs text-zinc-400">
@@ -198,42 +223,35 @@ export default function BrandsClient({ initialBrands = [] }) {
                         )}
                       </div>
 
-                      {/* Target Audience & Problem Preview */}
-                      <div className="space-y-2 pt-2 border-t border-zinc-800/80 text-xs">
-                        {brand.target_audience && (
-                          <div className="space-y-0.5">
-                            <span className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                              الجمهور المستهدف:
-                            </span>
-                            <p className="text-zinc-300 line-clamp-2 leading-relaxed">
-                              {brand.target_audience}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      {/* Target Audience Preview */}
+                      {brand.target_audience && (
+                        <div className="space-y-0.5 pt-2 border-t border-zinc-800/80 text-xs">
+                          <span className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                            الجمهور المستهدف:
+                          </span>
+                          <p className="text-zinc-300 line-clamp-2 leading-relaxed">
+                            {brand.target_audience}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Bottom CTA to Use in New Plan */}
+                    {/* Bottom Actions Row */}
                     <div className="pt-4 border-t border-zinc-800 flex items-center justify-between gap-2">
-                      {brand.website_url ? (
-                        <a
-                          href={brand.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
-                        >
-                          <Globe className="w-3.5 h-3.5" />
-                          <span>الموقع الإلكتروني</span>
-                        </a>
-                      ) : (
-                        <span className="text-[11px] text-zinc-600">لا يوجد موقع</span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveMemoryBrand({ brand, plans: brandPlans, insights })}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-zinc-100 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <History className="w-3.5 h-3.5 text-amber-400" />
+                        <span>سجل الذاكرة ({brandPlans.length})</span>
+                      </button>
 
                       <Link
                         href={`/plans/new?brandId=${brand.id}`}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold text-xs transition-colors"
                       >
-                        <span>استخدام لإنشاء خطة</span>
+                        <span>إنشاء خطة جديدة</span>
                       </Link>
                     </div>
                   </div>
@@ -243,6 +261,96 @@ export default function BrandsClient({ initialBrands = [] }) {
           )}
         </div>
       </main>
+
+      {/* Brand Memory & Strategic Timeline Modal */}
+      {activeMemoryBrand && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 space-y-6 text-right shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-800 text-amber-400 flex items-center justify-center shrink-0">
+                  <History className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-zinc-100">
+                    الذاكرة الاستراتيجية: {activeMemoryBrand.brand.name}
+                  </h3>
+                  <p className="text-xs text-zinc-400">سجل تطور الخطط التسويقية التراكمية</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveMemoryBrand(null)}
+                className="p-2 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Aggregated Insights Summary */}
+            <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/80 space-y-2">
+              <span className="block text-xs font-bold text-blue-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>ملخص الذاكرة التراكمية:</span>
+              </span>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                {activeMemoryBrand.insights.summary}
+              </p>
+            </div>
+
+            {/* Timeline of Plans */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                الخطط التسويقية السابقة ({activeMemoryBrand.plans.length}):
+              </h4>
+
+              {activeMemoryBrand.plans.length === 0 ? (
+                <p className="text-xs text-zinc-500 py-4 text-center">لا توجد خطط منشأة لهذا البراند بعد.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {activeMemoryBrand.plans.map((p, idx) => (
+                    <div
+                      key={p.id}
+                      className="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80 flex items-center justify-between gap-3 hover:border-zinc-700 transition-all"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-zinc-200">{p.product_name || "خطة تسويقية"}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-blue-400 text-[10px] font-bold">
+                            {(p.marketing_objective || "").replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        <span className="block text-[11px] text-zinc-500">
+                          {p.created_at ? new Date(p.created_at).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" }) : ""}
+                        </span>
+                      </div>
+
+                      <Link
+                        href={`/plans/${p.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 text-blue-400 text-xs font-bold transition-colors"
+                      >
+                        <span>فتح الخطة</span>
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 text-left">
+              <Link
+                href={`/plans/new?brandId=${activeMemoryBrand.brand.id}`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>إنشاء خطة جديدة مستندة للذاكرة</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Popup */}
       <ConfirmDeleteModal

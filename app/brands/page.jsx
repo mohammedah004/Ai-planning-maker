@@ -4,8 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import BrandsClient from "./BrandsClient";
 
 export const metadata = {
-  title: "ملفات البراند - مخطط التسويق الذكي",
-  description: "إدارة وحفظ ملفات البراند لاستخدامها في إنشاء خطط التسويق فورياً.",
+  title: "ملفات البراند والذاكرة الذكية - مخطط التسويق الذكي",
+  description: "إدارة ملفات البراند واستعراض الذاكرة الاستراتيجية وتاريخ تطور الخطط.",
 };
 
 export default async function BrandsPage() {
@@ -16,21 +16,33 @@ export default async function BrandsPage() {
 
   const { userId } = authData;
   let brands = [];
+  let plans = [];
 
   try {
-    const { data, error } = await supabaseAdmin
-      .from("brand_profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .order("is_default", { ascending: false })
-      .order("created_at", { ascending: false });
+    const [brandsRes, plansRes] = await Promise.all([
+      supabaseAdmin
+        .from("brand_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("marketing_plans")
+        .select("id, brand_profile_id, product_name, marketing_objective, status, created_at, strategy")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }),
+    ]);
 
-    if (!error && data) {
-      brands = data;
+    if (!brandsRes.error && brandsRes.data) {
+      brands = brandsRes.data;
+    }
+
+    if (!plansRes.error && plansRes.data) {
+      plans = plansRes.data;
     }
   } catch (err) {
-    console.error("Brands fetch exception:", err);
+    console.error("Brands & plans fetch exception:", err);
   }
 
-  return <BrandsClient initialBrands={brands} />;
+  return <BrandsClient initialBrands={brands} initialPlans={plans} />;
 }

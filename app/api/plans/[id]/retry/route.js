@@ -1,24 +1,45 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
+import { requireAuth } from "@/lib/auth-guard";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 /**
  * POST /api/plans/[id]/retry
- * Restarts a failed generation job and re-triggers the n8n pipeline.
+ * Restarts a failed generation job and re-triggers the plan generation pipeline.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy n8n webhook)
  */
 export async function POST(request, { params }) {
   try {
-    const session = await auth();
+    const { authData, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
 
-    if (!session?.user?.id && !session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "You must be signed in." } },
-        { status: 401 }
-      );
+    const { userId, user } = authData;
+    const { id: planId } = await params;
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch(`/api/v1/plans/${planId}/retry`, {
+        method: "POST",
+        authData,
+      });
+
+      if (!expressRes.ok) {
+        return NextResponse.json(expressRes.data, { status: expressRes.status });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: expressRes.data?.message || "تمت إعادة تشغيل عملية التوليد بنجاح.",
+        data: expressRes.data?.data || null,
+      });
     }
 
-    const { id: planId } = await params;
-    const userId = await getCanonicalUserId(session.user);
+    // -------------------------------------------------------------
+    // LEGACY N8N RETRY PIPELINE (Untouched when flag is false)
+    // -------------------------------------------------------------
 
     // 1. Verify plan ownership
     const { data: plan, error: planError } = await supabaseAdmin
@@ -30,7 +51,7 @@ export async function POST(request, { params }) {
 
     if (planError || !plan) {
       return NextResponse.json(
-        { success: false, error: { code: "NOT_FOUND", message: "Plan not found or unauthorized." } },
+        { success: false, error: { code: "NOT_FOUND", message: "الخطة غير موجودة أو لا تملك صلاحية إعادة تشغيلها." } },
         { status: 404 }
       );
     }
@@ -47,7 +68,7 @@ export async function POST(request, { params }) {
       .upsert(
         {
           marketing_plan_id: planId,
-          user_id: session.user.id,
+          user_id: userId,
           status: "queued",
           current_step: "Restarting generation pipeline...",
           error_message: null,
@@ -60,6 +81,10 @@ export async function POST(request, { params }) {
       .select("id")
       .single();
 
+    if (jobError) {
+      console.error("[API Retry] Failed to upsert generation_jobs record:", jobError);
+    }
+
     const jobId = jobRecord?.id || planId;
 
     // 4. Re-fire n8n Webhook
@@ -71,9 +96,9 @@ export async function POST(request, { params }) {
         const payload = {
           jobId,
           planId: plan.id,
-          userId: session.user.id,
-          userEmail: session.user.email,
-          userName: session.user.name || "User",
+          userId,
+          userEmail: user.email,
+          userName: user.name || "User",
           plan: {
             product_name: plan.product_name,
             product_description: plan.product_description,
@@ -104,12 +129,12 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({
       success: true,
-      message: "Plan generation restarted successfully.",
+      message: "تمت إعادة تشغيل عملية التوليد بنجاح.",
     });
   } catch (err) {
     console.error("[API Retry] Unhandled exception:", err);
     return NextResponse.json(
-      { success: false, error: { code: "SERVER_ERROR", message: "Failed to retry generation." } },
+      { success: false, error: { code: "SERVER_ERROR", message: "حدث خطأ غير متوقع أثناء إعادة المحاولة." } },
       { status: 500 }
     );
   }

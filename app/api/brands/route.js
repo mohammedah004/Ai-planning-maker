@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-guard";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { validateBrandInput } from "@/lib/validations/brand";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 /**
  * GET /api/brands
- * Returns all brand profiles for the authenticated user, ordered by is_default DESC, created_at DESC.
+ * Returns all brand profiles for the authenticated user.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB query)
  */
 export async function GET() {
   try {
@@ -14,6 +17,20 @@ export async function GET() {
 
     const { userId } = authData;
 
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch("/api/v1/brands", {
+        method: "GET",
+        authData,
+      });
+      return NextResponse.json(expressRes.data, { status: expressRes.status });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY SUPABASE QUERY PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
     const { data: brands, error } = await supabaseAdmin
       .from("brand_profiles")
       .select("*")
@@ -45,6 +62,7 @@ export async function GET() {
 /**
  * POST /api/brands
  * Creates a new brand profile for the authenticated user.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB insertion)
  */
 export async function POST(request) {
   try {
@@ -54,6 +72,21 @@ export async function POST(request) {
     const { userId } = authData;
     const body = await request.json();
 
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch("/api/v1/brands", {
+        method: "POST",
+        body,
+        authData,
+      });
+      return NextResponse.json(expressRes.data, { status: expressRes.status });
+    }
+
+    // -------------------------------------------------------------
+    // LEGACY INSERTION PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
     const validation = validateBrandInput(body);
     if (!validation.isValid) {
       return NextResponse.json(

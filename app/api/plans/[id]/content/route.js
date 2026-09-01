@@ -14,8 +14,9 @@ function safeJson(val, fallback = null) {
 
 /**
  * GET /api/plans/[id]/content
- * Retrieves the full strategic plan data (strategy, content_pillars, objective_distribution)
- * and all 30 generated content items ordered by day_number ASC.
+ * Retrieves the full strategic plan data (strategy, content_pillars, objective_distribution),
+ * all 30 generated content items ordered by day_number ASC,
+ * and memory data (preceding plan for the same brand) for comparative intelligence.
  */
 export async function GET(request, { params }) {
   try {
@@ -38,6 +39,7 @@ export async function GET(request, { params }) {
       .select(`
         id,
         user_id,
+        brand_profile_id,
         product_name,
         product_description,
         product_category,
@@ -82,7 +84,53 @@ export async function GET(request, { params }) {
       console.error("[GET /api/plans/[id]/content] Error fetching content items:", itemsError);
     }
 
-    // 3. Format and safely parse nested JSON structures
+    // 3. Phase 2 Memory: Fetch previous plan for the same brand if brand_profile_id exists
+    let previousPlan = null;
+    let previousItems = [];
+
+    if (plan.brand_profile_id) {
+      const { data: prevPlanRecord } = await supabaseAdmin
+        .from("marketing_plans")
+        .select("id, product_name, marketing_objective, strategy, content_pillars, objective_distribution, created_at, status")
+        .eq("brand_profile_id", plan.brand_profile_id)
+        .eq("user_id", userId)
+        .eq("status", "completed")
+        .neq("id", planId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (prevPlanRecord) {
+        previousPlan = {
+          id: prevPlanRecord.id,
+          productName: prevPlanRecord.product_name,
+          marketingObjective: prevPlanRecord.marketing_objective,
+          strategy: safeJson(prevPlanRecord.strategy, {}),
+          contentPillars: safeJson(prevPlanRecord.content_pillars, []),
+          objectiveDistribution: safeJson(prevPlanRecord.objective_distribution, {}),
+          createdAt: prevPlanRecord.created_at,
+        };
+
+        const { data: prevItemsRecord } = await supabaseAdmin
+          .from("content_items")
+          .select("id, day_number, post_type, content_objective, content_pillar")
+          .eq("marketing_plan_id", prevPlanRecord.id)
+          .eq("user_id", userId)
+          .order("day_number", { ascending: true });
+
+        if (prevItemsRecord) {
+          previousItems = prevItemsRecord.map((item) => ({
+            id: item.id,
+            dayNumber: item.day_number,
+            postType: item.post_type,
+            contentObjective: item.content_objective,
+            contentPillar: item.content_pillar,
+          }));
+        }
+      }
+    }
+
+    // 4. Format and safely parse nested JSON structures
     const parsedStrategy = safeJson(plan.strategy, {});
     const parsedPillars = safeJson(plan.content_pillars, []);
     const parsedObjDist = safeJson(plan.objective_distribution, {});
@@ -109,6 +157,7 @@ export async function GET(request, { params }) {
       data: {
         plan: {
           id: plan.id,
+          brandProfileId: plan.brand_profile_id || null,
           productName: plan.product_name,
           productDescription: plan.product_description,
           productCategory: plan.product_category,
@@ -127,6 +176,12 @@ export async function GET(request, { params }) {
         pillars: Array.isArray(parsedPillars) ? parsedPillars : [],
         objectiveDistribution: parsedObjDist,
         contentItems,
+        // Phase 2: Memory Context
+        memory: {
+          hasPreviousPlan: Boolean(previousPlan),
+          previousPlan,
+          previousItems,
+        },
       },
     });
   } catch (err) {

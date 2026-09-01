@@ -1,25 +1,57 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
+import { requireAuth } from "@/lib/auth-guard";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { validatePlanInput } from "@/lib/validations/plan";
+import { isExpressBackendEnabled } from "@/lib/backend-flag";
+import { expressFetch } from "@/lib/express-client";
 
 /**
  * POST /api/plans
- * Creates a new marketing plan, records a generation job, and triggers n8n webhook.
+ * Creates a new marketing plan, records a generation job, and triggers AI generation.
+ * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy n8n path)
  */
 export async function POST(request) {
   try {
-    const session = await auth();
+    const { authData, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
 
-    if (!session?.user?.id && !session?.user?.email) {
+    const { userId, user } = authData;
+    const body = await request.json();
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch("/api/v1/plans", {
+        method: "POST",
+        body,
+        authData,
+      });
+
+      if (!expressRes.ok) {
+        return NextResponse.json(expressRes.data, { status: expressRes.status });
+      }
+
+      const planId = expressRes.data?.data?.planId;
+      const jobId = expressRes.data?.data?.jobId;
+
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "يجب تسجيل الدخول لإنشاء خطة تسويقية." } },
-        { status: 401 }
+        {
+          success: true,
+          data: {
+            planId,
+            jobId,
+            status: "queued",
+            message: expressRes.data?.message || "تم إنشاء الخطة بنجاح وإرسالها إلى محرك التوليد بالذكاء الاصطناعي.",
+          },
+        },
+        { status: 201 }
       );
     }
 
-    const userId = await getCanonicalUserId(session.user);
-    const body = await request.json();
+    // -------------------------------------------------------------
+    // LEGACY N8N WORKFLOW PATH (Untouched when flag is false)
+    // -------------------------------------------------------------
 
     // 1. Validation & Sanitization
     const validation = validatePlanInput(body);
@@ -142,7 +174,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: { code: "DB_ERROR", message: "Failed to initialize marketing plan record in database." },
+          error: { code: "DB_ERROR", message: "تعذر إنشاء سجل الخطة التسويقية في قاعدة البيانات." },
         },
         { status: 500 }
       );
@@ -168,7 +200,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: { code: "DB_ERROR", message: "Failed to initialize generation job." },
+          error: { code: "DB_ERROR", message: "تعذر إنشاء مهمة التوليد." },
         },
         { status: 500 }
       );
@@ -189,7 +221,45 @@ export async function POST(request) {
       console.warn("[API /api/plans] Warning: Failed to pre-seed google_sheet_exports:", sheetError);
     }
 
-    // 6. Trigger n8n Webhook
+    // 6. Fetch previous brand plan summary (Phase 2 Brand Memory Injection)
+    let previousPlanSummary = null;
+    if (brandProfileId) {
+      try {
+        const { data: lastPlan } = await supabaseAdmin
+          .from("marketing_plans")
+          .select("id, marketing_objective, strategy, content_pillars")
+          .eq("brand_profile_id", brandProfileId)
+          .eq("user_id", userId)
+          .eq("status", "completed")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastPlan) {
+          let parsedStrat = lastPlan.strategy;
+          if (typeof parsedStrat === "string") {
+            try { parsedStrat = JSON.parse(parsedStrat); } catch {}
+          }
+          let parsedPillars = lastPlan.content_pillars;
+          if (typeof parsedPillars === "string") {
+            try { parsedPillars = JSON.parse(parsedPillars); } catch {}
+          }
+
+          previousPlanSummary = {
+            has_previous_plan: true,
+            previous_objective: lastPlan.marketing_objective,
+            previous_pillars: Array.isArray(parsedPillars)
+              ? parsedPillars.map((p) => (typeof p === "string" ? p : p.name || p.title || ""))
+              : [],
+            previous_strategy_highlights: parsedStrat?.positioning || parsedStrat?.target_audience_analysis || "",
+          };
+        }
+      } catch (memErr) {
+        console.warn("[API /api/plans] Warning: Failed to query previous brand plan:", memErr);
+      }
+    }
+
+    // 7. Trigger n8n Webhook
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
     const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
 
@@ -200,9 +270,10 @@ export async function POST(request) {
         jobId,
         planId,
         userId,
-        userEmail: session.user.email,
-        userName: session.user.name || "User",
+        userEmail: user.email,
+        userName: user.name || "User",
         plan: sanitizedData,
+        previous_plan_summary: previousPlanSummary,
         createdAt: new Date().toISOString(),
       };
 
@@ -245,7 +316,7 @@ export async function POST(request) {
           planId,
           jobId,
           status: "queued",
-          message: "Marketing plan created and queued for AI generation.",
+          message: "تم إنشاء الخطة بنجاح وإرسالها إلى محرك التوليد بالذكاء الاصطناعي.",
         },
       },
       { status: 201 }
@@ -255,7 +326,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        error: { code: "SERVER_ERROR", message: "An unexpected error occurred while creating your plan." },
+        error: { code: "SERVER_ERROR", message: "حدث خطأ غير متوقع أثناء إنشاء الخطة." },
       },
       { status: 500 }
     );
@@ -268,17 +339,25 @@ export async function POST(request) {
  */
 export async function GET() {
   try {
-    const session = await auth();
+    const { authData, errorResponse } = await requireAuth();
+    if (errorResponse) return errorResponse;
 
-    if (!session?.user?.id && !session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "You must be signed in to view your plans." } },
-        { status: 401 }
-      );
+    const { userId } = authData;
+
+    // -------------------------------------------------------------
+    // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
+    // -------------------------------------------------------------
+    if (isExpressBackendEnabled(authData)) {
+      const expressRes = await expressFetch("/api/v1/plans", {
+        method: "GET",
+        authData,
+      });
+      return NextResponse.json(expressRes.data, { status: expressRes.status });
     }
 
-    const userId = await getCanonicalUserId(session.user);
-
+    // -------------------------------------------------------------
+    // LEGACY DATABASE QUERY PATH
+    // -------------------------------------------------------------
     const { data: plans, error } = await supabaseAdmin
       .from("marketing_plans")
       .select(`
@@ -305,7 +384,7 @@ export async function GET() {
     if (error) {
       console.error("[API /api/plans GET] Error fetching plans:", error);
       return NextResponse.json(
-        { success: false, error: { code: "DB_ERROR", message: "Failed to retrieve plans from database." } },
+        { success: false, error: { code: "DB_ERROR", message: "تعذر جلب الخطط التسويقية من قاعدة البيانات." } },
         { status: 500 }
       );
     }
@@ -317,7 +396,7 @@ export async function GET() {
   } catch (err) {
     console.error("[API /api/plans GET] Unhandled exception:", err);
     return NextResponse.json(
-      { success: false, error: { code: "SERVER_ERROR", message: "An unexpected error occurred." } },
+      { success: false, error: { code: "SERVER_ERROR", message: "حدث خطأ غير متوقع." } },
       { status: 500 }
     );
   }
