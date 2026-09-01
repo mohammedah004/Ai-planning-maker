@@ -8,6 +8,9 @@ import {
   BRAND_TONES,
   validateBrandInput,
 } from "@/lib/validations/brand";
+import AppShell from "@/app/components/shell/AppShell";
+import PageHeader from "@/app/components/shell/PageHeader";
+import Badge from "@/app/components/ui/Badge";
 import {
   ArrowRight,
   Loader2,
@@ -121,36 +124,18 @@ export default function BrandForm({ initialData = null, isEdit = false, brandId 
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-blue-600 selection:text-white pb-24">
-      {/* Top Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link
-            href="/brands"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
-          >
-            <ArrowRight className="w-4 h-4" />
-            <span>العودة لملفات البراند</span>
-          </Link>
-          <div className="flex items-center gap-2 text-xs text-blue-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full font-bold">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>ذاكرة البراند الذكية</span>
-          </div>
-        </div>
-      </header>
+    <AppShell>
+      <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+        {/* Page Contextual Header */}
+        <PageHeader
+          backHref="/brands"
+          backLabel="العودة لملفات البراند"
+          title={isEdit ? "تعديل ملف البراند المحفوظ" : "إنشاء ملف براند جديد"}
+          description="احفظ معلومات منتجك وهويته التسويقية هنا، وسيتم استيرادها تلقائياً عند إنشاء أي خطة محتوى جديدة."
+          badge={<Badge variant="blue">ذاكرة البراند</Badge>}
+        />
 
-      {/* Main Container */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-10">
-        {/* Intro */}
-        <div className="mb-10 text-right">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">
-            {isEdit ? "تعديل ملف البراند المحفوظ" : "إنشاء ملف براند جديد"}
-          </h1>
-          <p className="text-zinc-400 text-xs sm:text-sm mt-2 leading-relaxed">
-            احفظ معلومات منتجك وهويته التسويقية هنا، وسيتم استيرادها تلقائياً عند إنشاء أي خطة محتوى جديدة.
-          </p>
-        </div>
-
+        <div className="pt-8">
         {/* Global Error Banner */}
         {serverError && (
           <div className="mb-8 p-4 rounded-xl bg-zinc-900 border border-red-800 text-red-200 flex items-start gap-3 text-sm">
@@ -434,7 +419,8 @@ export default function BrandForm({ initialData = null, isEdit = false, brandId 
             </button>
           </div>
         </form>
-      </main>
-    </div>
+        </div>
+      </div>
+    </AppShell>
   );
 }

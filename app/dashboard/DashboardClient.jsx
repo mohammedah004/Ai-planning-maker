@@ -3,25 +3,31 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import {
   Plus,
-  Calendar,
   FileSpreadsheet,
-  LogOut,
   Clock,
   CheckCircle2,
   AlertCircle,
-  ExternalLink,
-  ChevronLeft,
   FolderOpen,
-  RefreshCw,
   Trash2,
-  Loader2,
   Building2,
+  Compass,
+  ArrowLeft,
+  Search,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { pingBackendHealth } from "@/lib/backend-health";
+import AppShell from "@/app/components/shell/AppShell";
+import PageHeader from "@/app/components/shell/PageHeader";
+import Button from "@/app/components/ui/Button";
+import Badge from "@/app/components/ui/Badge";
+import Card from "@/app/components/ui/Card";
+import StatMetric from "@/app/components/ui/StatMetric";
+import EmptyState from "@/app/components/ui/EmptyState";
+import Tabs from "@/app/components/ui/Tabs";
 
 const formatObjective = (obj) => {
   const map = {
@@ -39,6 +45,8 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
   const router = useRouter();
   const [plans, setPlans] = useState(initialPlans);
   const [brands, setBrands] = useState(initialBrands);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [planToDelete, setPlanToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
@@ -75,261 +83,322 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
 
   const completedCount = plans.filter((p) => p.status === "completed").length;
   const inProgressCount = plans.filter((p) => p.status === "generating" || p.status === "draft").length;
+  const failedCount = plans.filter((p) => p.status === "failed").length;
+  const totalPlannedPosts = completedCount * 30;
+
+  // Filter plans based on search and status
+  const filteredPlans = plans.filter((plan) => {
+    const matchesStatus =
+      statusFilter === "all"
+        ? true
+        : statusFilter === "completed"
+        ? plan.status === "completed"
+        : statusFilter === "generating"
+        ? plan.status === "generating" || plan.status === "draft"
+        : statusFilter === "failed"
+        ? plan.status === "failed"
+        : true;
+
+    const matchesSearch = searchQuery.trim() === ""
+      ? true
+      : (plan.product_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (plan.product_category || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesStatus && matchesSearch;
+  });
+
+  const filterTabs = [
+    { id: "all", label: "جميع الخطط", count: plans.length },
+    { id: "completed", label: "المكتملة", count: completedCount },
+    ...(inProgressCount > 0
+      ? [{ id: "generating", label: "قيد التوليد", count: inProgressCount }]
+      : []),
+    ...(failedCount > 0
+      ? [{ id: "failed", label: "تعثرت", count: failedCount }]
+      : []),
+  ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Dashboard Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5 font-extrabold text-base text-zinc-100">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">
-                AI
-              </div>
-              <span>مخطط التسويق الذكي</span>
-            </Link>
-
-            {/* Navigation tabs */}
-            <nav className="hidden md:flex items-center gap-2">
-              <Link
-                href="/dashboard"
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-zinc-100 bg-zinc-800 border border-zinc-700/60"
-              >
-                الخطط التسويقية
-              </Link>
-              <Link
+    <AppShell user={session?.user} brandCount={brands.length}>
+      <div className="w-full space-y-8 text-right">
+        {/* Orientation & Contextual Header */}
+        <PageHeader
+          title="مساحة العمل والتخطيط"
+          description="مركز إدارة واستعراض خطط محتوى إنستغرام لـ 30 يوماً، وتوليد الاستراتيجيات المعتمدة وتصدير ملفات التنفيذ."
+          badge={<Badge variant="blue">إصدار الذكاء التسويقي</Badge>}
+          actions={
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
                 href="/brands"
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors flex items-center gap-1.5"
+                variant="secondary"
+                size="md"
+                startIcon={Building2}
               >
-                <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>ملفات البراند</span>
-                {brands.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 text-[10px] border border-zinc-700">
-                    {brands.length}
-                  </span>
-                )}
-              </Link>
-            </nav>
-          </div>
+                <span>ذاكرة البراند</span>
+                <span className="px-1.5 py-0.2 bg-zinc-800 text-zinc-300 text-xs rounded-full tabular-nums">
+                  {brands.length}
+                </span>
+              </Button>
 
-          {/* User Profile & Actions */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              {session.user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={session.user.image}
-                  alt={session.user.name || "User Avatar"}
-                  className="w-8 h-8 rounded-full border border-zinc-800 object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-200 flex items-center justify-center text-xs font-bold">
-                  {session.user.name ? session.user.name.charAt(0).toUpperCase() : "م"}
-                </div>
-              )}
-              <div className="hidden sm:block text-right">
-                <div className="text-xs font-bold text-zinc-100 leading-tight">{session.user.name || "المسوق الذكي"}</div>
-                <div className="text-[11px] text-zinc-500 leading-tight">{session.user.email}</div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              title="تسجيل الخروج"
-              className="p-2 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-900 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome & Action Banner */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-8 border-b border-zinc-900">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">الخطط التسويقية</h1>
-            <p className="text-zinc-400 text-xs sm:text-sm mt-1">
-              أنشئ، تابع، وصدّر خطط وجداول محتوى إنستغرام لـ 30 يوماً بكامل تفاصيلها.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/brands"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-zinc-100 font-bold text-xs sm:text-sm transition-all"
-            >
-              <Building2 className="w-4 h-4 text-blue-400" />
-              <span>إدارة ملفات البراند ({brands.length})</span>
-            </Link>
-
-            <Link
-              href="/plans/new"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition-all shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>إنشاء خطة جديدة</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8">
-          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
-            <span className="text-xs text-zinc-400 font-bold">إجمالي الخطط</span>
-            <div className="text-2xl font-extrabold text-zinc-100">{plans.length}</div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
-            <span className="text-xs text-zinc-400 font-bold">الخطط المكتملة</span>
-            <div className="text-2xl font-extrabold text-emerald-400">{completedCount}</div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
-            <span className="text-xs text-zinc-400 font-bold">قيد المعالجة</span>
-            <div className="text-2xl font-extrabold text-blue-400">{inProgressCount}</div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm text-right space-y-1">
-            <span className="text-xs text-zinc-400 font-bold">ملفات البراند</span>
-            <div className="text-2xl font-extrabold text-purple-400">{brands.length}</div>
-          </div>
-        </div>
-
-        {/* Plans List / Grid */}
-        {plans.length === 0 ? (
-          /* Empty State */
-          <div className="rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/30 p-12 text-center max-w-xl mx-auto my-12 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-blue-400 flex items-center justify-center mx-auto">
-              <FolderOpen className="w-7 h-7" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-zinc-100">لا توجد خطط تسويقية بعد</h3>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
-                ابدأ بإنشاء أول خطة محتوى تسويقية لـ 30 يوماً لمنتجك أو مشروعك وادعُ الذكاء الاصطناعي لإعداد الاستراتيجية كاملة.
-              </p>
-            </div>
-            <div className="pt-2">
-              <Link
+              <Button
                 href="/plans/new"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition-all shadow-sm"
+                variant="primary"
+                size="md"
+                startIcon={Plus}
               >
-                <Plus className="w-4 h-4" />
-                <span>أنشئ خطتك الأولى الآن</span>
-              </Link>
+                إنشاء خطة 30 يوم جديدة
+              </Button>
             </div>
+          }
+        />
+
+        {/* Meaningful Overview Metrics (100% Authentic Data) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatMetric
+            label="الخطط المكتملة"
+            value={completedCount}
+            subtitle="خطط جاهزة للتنفيذ والإخراج"
+            variant="emerald"
+            icon={CheckCircle2}
+          />
+
+          <StatMetric
+            label="المنشورات المخططة"
+            value={totalPlannedPosts}
+            subtitle="منشور مصاغ بالكامل لـ 30 يوماً"
+            variant="blue"
+            icon={Layers}
+          />
+
+          <StatMetric
+            label="قيد المعالجة"
+            value={inProgressCount}
+            subtitle={inProgressCount > 0 ? "جاري التوليد بواسطة AI" : "لا توجد معالجات نشطة الآن"}
+            variant={inProgressCount > 0 ? "amber" : "default"}
+            icon={Clock}
+          />
+
+          <StatMetric
+            label="ملفات البراند المسجلة"
+            value={brands.length}
+            subtitle="أصول ذاكرة متاحة للتعبئة الفورية"
+            variant="purple"
+            icon={Building2}
+          />
+        </div>
+
+        {/* Plans Section */}
+        <div className="space-y-5 pt-4">
+          {/* Section Bar & Filtering Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-zinc-800/80">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-extrabold text-zinc-100">
+                الخطط التسويقية
+              </h2>
+              <span className="text-xs text-zinc-400 font-bold tabular-nums">
+                ({filteredPlans.length} من أصل {plans.length})
+              </span>
+            </div>
+
+            {plans.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search Input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ابحث باسم المنتج أو الفئة..."
+                    className="w-56 sm:w-64 py-2 pr-9 pl-4 rounded-xl bg-[#09090b] text-xs text-zinc-100 placeholder-zinc-500 border border-zinc-800 focus:border-blue-500 focus:outline-none transition-colors"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
+                    <Search className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+
+                {/* Status Tabs */}
+                {filterTabs.length > 1 && (
+                  <Tabs
+                    tabs={filterTabs}
+                    activeTab={statusFilter}
+                    onChange={setStatusFilter}
+                  />
+                )}
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan) => {
-              const sheetExport = Array.isArray(plan.google_sheet_exports)
-                ? plan.google_sheet_exports[0]
-                : plan.google_sheet_exports;
-              const sheetUrl = sheetExport?.spreadsheet_url;
 
-              const isCompleted = plan.status === "completed";
-              const isFailed = plan.status === "failed";
-
-              const formattedDate = plan.created_at
-                ? new Date(plan.created_at).toLocaleDateString("ar-SA", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })
-                : "";
-
-              return (
-                <div
-                  key={plan.id}
-                  className="rounded-2xl bg-zinc-900 border border-zinc-800/80 p-6 flex flex-col justify-between hover:border-zinc-700 transition-all text-right shadow-sm group"
+          {/* Main Plans Display */}
+          {plans.length === 0 ? (
+            /* Empty State when no plans exist */
+            <EmptyState
+              icon={Compass}
+              title="مساحة التخطيط جاهزة لبدء أولى خططك"
+              description="لم تقم بإنشاء أي خطة محتوى تسويقية بعد. ابدأ بإدخال بيانات منتجك وسيقوم المحرك بتشخيص السوق، صياغة الاستراتيجية، وبناء جدول منشورات شهر كامل وتصديره لـ Google Sheets."
+              action={
+                <Button
+                  href="/plans/new"
+                  variant="primary"
+                  size="lg"
+                  startIcon={Plus}
                 >
-                  <div className="space-y-4">
-                    {/* Header: Title & Category */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-800 text-blue-400 font-semibold border border-zinc-700/60 inline-block">
-                          {plan.product_category}
-                        </span>
-                        <h3 className="text-lg font-bold text-zinc-100 group-hover:text-blue-400 transition-colors leading-snug">
-                          {plan.product_name}
-                        </h3>
+                  إنشاء خطة 30 يوم الآن
+                </Button>
+              }
+              secondaryAction={
+                brands.length === 0 ? (
+                  <Button
+                    href="/brands/new"
+                    variant="outline"
+                    size="lg"
+                    startIcon={Building2}
+                  >
+                    حفظ ملف براند أولاً
+                  </Button>
+                ) : null
+              }
+            />
+          ) : filteredPlans.length === 0 ? (
+            /* Empty State for Filter Query */
+            <div className="p-12 text-center rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800 space-y-3">
+              <p className="text-sm font-bold text-zinc-300">
+                لا توجد خطط تسويقية تطابق بحثك الحالي
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                }}
+              >
+                إعادة ضبط الفلاتر
+              </Button>
+            </div>
+          ) : (
+            /* Plans Grid */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredPlans.map((plan) => {
+                const sheetExport = Array.isArray(plan.google_sheet_exports)
+                  ? plan.google_sheet_exports[0]
+                  : plan.google_sheet_exports;
+                const sheetUrl = sheetExport?.spreadsheet_url;
+
+                const isCompleted = plan.status === "completed";
+                const isFailed = plan.status === "failed";
+                const isGenerating = plan.status === "generating" || plan.status === "draft";
+
+                const formattedDate = plan.created_at
+                  ? new Date(plan.created_at).toLocaleDateString("ar-SA", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "";
+
+                return (
+                  <Card
+                    key={plan.id}
+                    variant="interactive"
+                    padding="none"
+                    className="flex flex-col justify-between overflow-hidden group border-zinc-800/80 hover:border-zinc-700"
+                  >
+                    {/* Card Header */}
+                    <div className="p-5 pb-3 border-b border-zinc-850/80 flex items-start justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {plan.product_category && (
+                          <Badge variant="blue" size="sm">
+                            {plan.product_category}
+                          </Badge>
+                        )}
+                        <Badge variant="subtle" size="sm">
+                          {formatObjective(plan.marketing_objective)}
+                        </Badge>
                       </div>
 
-                      {/* Delete Button */}
+                      {/* Delete Action */}
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setDeleteError(null);
                           setPlanToDelete({ id: plan.id, name: plan.product_name });
                         }}
                         title="حذف الخطة"
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+                        aria-label="حذف الخطة"
+                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 transition-colors cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <p className="text-xs text-zinc-400">
-                      الهدف: <span className="text-zinc-300 font-semibold">{formatObjective(plan.marketing_objective)}</span>
-                    </p>
-
-                    {/* Status Badge */}
-                    <div>
-                      {isCompleted ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>الخطة مكتملة</span>
-                        </span>
-                      ) : isFailed ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-red-950/60 border border-red-800/60 text-red-300 text-xs font-semibold">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          <span>تعثر التوليد</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-950/60 border border-blue-800/60 text-blue-300 text-xs font-semibold animate-pulse">
-                          <Clock className="w-3.5 h-3.5 animate-spin" />
-                          <span>جاري التوليد...</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions Footer */}
-                  <div className="pt-5 mt-5 border-t border-zinc-800/80 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-zinc-500 font-medium">{formattedDate}</span>
-
-                    <div className="flex items-center gap-2">
-                      {sheetUrl && (
-                        <a
-                          href={sheetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-emerald-400 transition-colors"
-                          title="فتح ملف Google Sheet"
-                        >
-                          <FileSpreadsheet className="w-4 h-4" />
-                        </a>
-                      )}
-
-                      <Link
-                        href={`/plans/${plan.id}`}
-                        className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-colors"
-                      >
-                        <span>عرض التفاصيل</span>
-                        <ChevronLeft className="w-3.5 h-3.5 dir-ltr" />
+                    {/* Card Body */}
+                    <div className="p-5 space-y-3 flex-1">
+                      <Link href={`/plans/${plan.id}`} className="block group-hover:text-blue-400 transition-colors">
+                        <h3 className="text-base font-extrabold text-zinc-100 tracking-tight leading-snug line-clamp-2">
+                          {plan.product_name}
+                        </h3>
                       </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
 
-      {/* Delete Confirmation Popup */}
+                      {/* Live Status Badge */}
+                      <div>
+                        {isCompleted && (
+                          <Badge variant="emerald" size="sm" dot={true}>
+                            خطة 30 يوماً مكتملة وجاهزة
+                          </Badge>
+                        )}
+                        {isGenerating && (
+                          <Badge variant="blue" size="sm" dot={true} className="animate-pulse">
+                            جاري التوليد الذكي...
+                          </Badge>
+                        )}
+                        {isFailed && (
+                          <Badge variant="red" size="sm" dot={true}>
+                            تعثر التوليد — انقر لإعادة المحاولة
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Footer */}
+                    <div className="p-4 px-5 bg-zinc-950/40 border-t border-zinc-850/80 flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-zinc-500 font-medium tabular-nums">
+                        {formattedDate}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        {sheetUrl && (
+                          <a
+                            href={sheetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 hover:bg-emerald-900/40 transition-colors"
+                            title="فتح ملف Google Sheet المعتمد"
+                          >
+                            <FileSpreadsheet className="w-4 h-4" />
+                          </a>
+                        )}
+
+                        <Button
+                          href={`/plans/${plan.id}`}
+                          variant={isCompleted ? "secondary" : "primary"}
+                          size="xs"
+                          endIcon={ArrowLeft}
+                        >
+                          {isCompleted ? "عرض الخطة" : "متابعة التوليد"}
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal
         isOpen={Boolean(planToDelete)}
         onClose={() => setPlanToDelete(null)}
@@ -337,7 +406,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
         title="حذف الخطة التسويقية"
         description={
           planToDelete
-            ? `هل أنت متأكد من حذف خطة "${planToDelete.name}"؟ سيتم حذف جميع منشورات الـ 30 يوماً والتصاميم والتوجيهات البصرية المرتبطة بها نهائياً.`
+            ? `هل أنت متأكد من حذف خطة "${planToDelete.name}"؟ سيتم حذف جميع منشورات الـ 30 يوماً والتشخيص الاستراتيجي المرتبط بها نهائياً.`
             : ""
         }
         confirmText="تأكيد الحذف النهائي"
@@ -346,6 +415,6 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
         error={deleteError}
         variant="danger"
       />
-    </div>
+    </AppShell>
   );
 }

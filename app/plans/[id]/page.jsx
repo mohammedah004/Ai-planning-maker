@@ -34,6 +34,7 @@ import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { detectStrategicWarnings } from "@/lib/strategic-warnings";
 import { computeStrategyConfidenceScore } from "@/lib/strategic-rationale";
 import { pingBackendHealth } from "@/lib/backend-health";
+import { AppShell } from "@/app/components/app-shell";
 
 export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -241,25 +242,8 @@ export default function PlanDetailPage({ params }) {
     : allContentItems.filter((item) => item.postType?.toLowerCase() === formatFilter);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-blue-600 selection:text-white pb-24">
-      {/* Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-zinc-400 hover:text-zinc-100 transition-colors"
-          >
-            <ArrowRight className="w-4 h-4" />
-            <span>لوحة التحكم</span>
-          </Link>
-          <div className="flex items-center gap-2 text-xs text-blue-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full font-bold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>محرك الذكاء الاستراتيجي</span>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <AppShell>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         {loading ? (
           <div className="text-center py-24 space-y-4 max-w-md mx-auto">
             <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto" />
@@ -626,7 +610,7 @@ export default function PlanDetailPage({ params }) {
             )}
           </div>
         )}
-      </main>
+      </div>
 
       {/* Share Plan Modal */}
       <ShareModal
@@ -650,6 +634,6 @@ export default function PlanDetailPage({ params }) {
         error={cancelError}
         variant="warning"
       />
-    </div>
+    </AppShell>
   );
 }

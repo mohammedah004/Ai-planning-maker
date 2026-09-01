@@ -1,19 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
-import {
-  Sparkles,
-  Plus,
-  Calendar,
-  FileSpreadsheet,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
-  ChevronLeft,
-  FolderOpen,
-  RefreshCw,
-} from "lucide-react";
 import DashboardClient from "./DashboardClient";
 
 export const metadata = {

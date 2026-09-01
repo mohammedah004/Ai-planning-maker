@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { aggregateBrandInsights } from "@/lib/brand-insights";
+import { AppShell, PageHeader } from "@/app/components/app-shell";
+import Button from "@/app/components/ui/Button";
 
 export default function BrandsClient({ initialBrands = [], initialPlans = [] }) {
   const router = useRouter();
@@ -62,45 +64,23 @@ export default function BrandsClient({ initialBrands = [], initialPlans = [] }) 
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-blue-600 selection:text-white pb-24">
-      {/* Top Header */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+    <AppShell>
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+        {/* Page Contextual Header */}
+        <PageHeader
+          title="ملفات البراند والذاكرة الاستراتيجية"
+          description="احفظ معلومات منتجاتك مرة واحدة، وتابع تطور الخطط التسويقية الشهرية المتراكمة لنفس البراند بدون تكرار."
+          actions={
+            <Button
+              href="/brands/new"
+              variant="primary"
+              size="sm"
+              startIcon={Plus}
             >
-              <ArrowRight className="w-4 h-4" />
-              <span>العودة للوحة التحكم</span>
-            </Link>
-          </div>
-
-          <Link
-            href="/brands/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition-all shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة براند جديد</span>
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        {/* Intro */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-8 border-b border-zinc-900 text-right">
-          <div>
-            <div className="flex items-center gap-2 text-blue-400 text-sm font-bold mb-1">
-              <Building2 className="w-4 h-4" />
-              <span>ذاكرة البراند الذكية (Brand Memory Engine)</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100 tracking-tight">ملفات البراند والذاكرة الاستراتيجية</h1>
-            <p className="text-zinc-400 text-xs sm:text-sm mt-1">
-              احفظ معلومات منتجاتك مرة واحدة، وتابع تطور الخطط التسويقية الشهرية المتراكمة لنفس البراند بدون تكرار.
-            </p>
-          </div>
-        </div>
+              إضافة ملف براند جديد
+            </Button>
+          }
+        />
 
         {/* Brands List or Empty State */}
         <div className="mt-8 space-y-4">
@@ -260,7 +240,7 @@ export default function BrandsClient({ initialBrands = [], initialPlans = [] }) 
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       {/* Brand Memory & Strategic Timeline Modal */}
       {activeMemoryBrand && (
@@ -369,6 +349,6 @@ export default function BrandsClient({ initialBrands = [], initialPlans = [] }) 
         error={deleteError}
         variant="danger"
       />
-    </div>
+    </AppShell>
   );
 }

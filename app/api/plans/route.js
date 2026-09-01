@@ -22,18 +22,26 @@ export async function POST(request) {
     // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
     // -------------------------------------------------------------
     if (isExpressBackendEnabled(authData)) {
+      const expressUrl = process.env.EXPRESS_BACKEND_URL || "http://localhost:5000";
+      console.log(`[Next.js API] 🚀 Dispatching plan creation to Express backend at: ${expressUrl}/api/v1/plans (userId: ${userId})`);
+
       const expressRes = await expressFetch("/api/v1/plans", {
         method: "POST",
         body,
         authData,
       });
 
+      console.log(`[Next.js API] 📥 Express backend response: status=${expressRes.status}, ok=${expressRes.ok}`);
+
       if (!expressRes.ok) {
+        console.error(`[Next.js API] ❌ Express backend error response:`, expressRes.data);
         return NextResponse.json(expressRes.data, { status: expressRes.status });
       }
 
       const planId = expressRes.data?.data?.planId;
       const jobId = expressRes.data?.data?.jobId;
+
+      console.log(`[Next.js API] ✅ Express generation job initiated: planId=${planId}, jobId=${jobId}`);
 
       return NextResponse.json(
         {

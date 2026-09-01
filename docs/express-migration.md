@@ -100,30 +100,57 @@ To eliminate delay caused by Render's free-tier instance spindown (cold start), 
 
 ---
 
-## 6. Zero-Downtime Cutover & Rollback
+## 6. Canary Rollout, Dynamic Remote Kill-Switch & Rollback
 
-### Switching to Express Backend
-Set the following in `.env` (or Render environment settings):
+### 1. Canary Configuration for Solo-Developer Testing
+To safely test the Express backend with specific developer accounts without exposing regular production traffic:
 ```bash
-USE_EXPRESS_BACKEND=true
-NEXT_PUBLIC_USE_EXPRESS_BACKEND=true
-```
-
-### Instant Emergency Rollback
-If any unexpected issue occurs in production, simply flip the flag:
-```bash
+# In Next.js server environment / Vercel
 USE_EXPRESS_BACKEND=false
-NEXT_PUBLIC_USE_EXPRESS_BACKEND=false
+CANARY_ALLOWLIST_EMAILS=dev@company.com,tester@staging.io
+CANARY_PERCENTAGE=0
 ```
-No code deployment or Git revert is required. All API routes immediately fall back to the legacy n8n webhook and direct Supabase logic.
+- Users matching `CANARY_ALLOWLIST_EMAILS` or `CANARY_USER_ALLOWLIST` bypass percentage sampling and are routed **100% to the Express backend**.
+- All other users continue using the legacy n8n pipeline.
+
+### 2. Zero-Deploy Emergency Kill-Switch (`FORCE_N8N_FALLBACK`)
+If an issue occurs during rollout, traffic can be reverted back to n8n **instantly without waiting for a rebuild/deploy cycle**:
+- **Option A (Environment Variable):** Set `FORCE_N8N_FALLBACK=true`.
+- **Option B (Remote Database Setting):** Update `system_settings` table in Supabase:
+  ```sql
+  UPDATE public.system_settings
+  SET value = jsonb_set(value, '{force_n8n_fallback}', 'true')
+  WHERE key = 'express_backend_config';
+  ```
+  *(Cached for 60 seconds; reverts 100% of traffic immediately).*
 
 ---
 
-## 7. Test Verification
+## 7. Automated Monitoring & Alerting
 
-All integration paths and feature flag branches are covered by the automated test suite:
+Run the standalone pipeline health checker or schedule it via cron/Render/GitHub Actions:
+```bash
+cd backend
+npm run monitor:health
+```
+
+### Monitored Conditions & Alert Thresholds:
+1. **Stuck Jobs:** Any job in `generating` / non-terminal state for `> 5 minutes`.
+2. **High Failure Rate:** Rolling 1-hour failure rate `> 5.0%`.
+3. **Google Sheets Failures:** Any failed export record in the last 1 hour.
+4. **Webhook Dispatcher:** Sends structured alert cards to Discord, Slack, Telegram, or generic webhooks:
+   ```
+   [ALERT] AI Planner Staging/Prod Issue | Type: <STUCK_JOB | HIGH_FAILURE_RATE | SHEETS_EXPORT_FAILURE> | JobId: <id> | PlanId: <id> | Details: <error_message> | Timestamp: <ISO>
+   ```
+
+---
+
+## 8. Test Verification
+
+All integration paths, feature flag branches, and canary configurations are covered by the automated test suite:
 ```bash
 cd backend
 npm test
 ```
-**Test Matrix: 7 suites, 54 tests passing.**
+**Test Matrix: 7 suites, 61 tests passing (100% success rate).**
+
