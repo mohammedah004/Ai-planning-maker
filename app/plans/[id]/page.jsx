@@ -28,13 +28,14 @@ import StrategicWarnings from "./components/StrategicWarnings";
 import StrategyViewer from "./components/StrategyViewer";
 import PillarCards from "./components/PillarCards";
 import ContentItemCard from "./components/ContentItemCard";
+import PlanCalendarView from "./components/calendar/PlanCalendarView";
 import ContentMixInsights from "./components/ContentMixInsights";
 import ShareModal from "./components/ShareModal";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { detectStrategicWarnings } from "@/lib/strategic-warnings";
 import { computeStrategyConfidenceScore } from "@/lib/strategic-rationale";
 import { pingBackendHealth } from "@/lib/backend-health";
-import { AppShell } from "@/app/components/app-shell";
+import AppShell from "@/app/components/shell/AppShell";
 
 export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -532,64 +533,20 @@ export default function PlanDetailPage({ params }) {
                   </div>
                 )}
 
-                {/* Tab 2: 30-Day Content Calendar */}
+                {/* Tab 2: 30-Day Editorial Content Calendar */}
                 {activeTab === "calendar" && (
-                  <div className="space-y-6">
-                    {/* Format Filter Bar */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-zinc-900 border border-zinc-800/80">
-                      <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-                        <Filter className="w-4 h-4 text-blue-400" />
-                        <span>تصفية بحسب القالب البصري:</span>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {[
-                          { id: "all", label: "جميع المنشورات" },
-                          { id: "reel", label: "ريلز (Reel)" },
-                          { id: "carousel", label: "كاروسيل" },
-                          { id: "static_post", label: "منشور ثابت" },
-                          { id: "story", label: "ستوري" },
-                        ].map((f) => (
-                          <button
-                            key={f.id}
-                            type="button"
-                            onClick={() => setFormatFilter(f.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              formatFilter === f.id
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "bg-zinc-950 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                            }`}
-                          >
-                            {f.label}
-                          </button>
-                        ))}
-                      </div>
+                  loadingContent ? (
+                    <div className="text-center py-16 space-y-3">
+                      <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
+                      <p className="text-xs text-zinc-400">جاري تحميل تقويم منشورات الخطة...</p>
                     </div>
-
-                    {/* Content Items List */}
-                    {loadingContent ? (
-                      <div className="text-center py-12 space-y-3">
-                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
-                        <p className="text-xs text-zinc-400">جاري تحميل منشورات الخطة...</p>
-                      </div>
-                    ) : filteredItems.length === 0 ? (
-                      <div className="p-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-center text-zinc-400 text-sm">
-                        لا توجد منشورات تطابق القالب المحدد.
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-6">
-                        {filteredItems.map((item) => (
-                          <ContentItemCard
-                            key={item.id || item.dayNumber}
-                            item={item}
-                            planId={planId}
-                            strategy={contentData?.strategy}
-                            onUpdate={handleItemUpdate}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  ) : (
+                    <PlanCalendarView
+                      contentItems={allContentItems}
+                      planId={planId}
+                      onItemUpdate={handleItemUpdate}
+                    />
+                  )
                 )}
 
                 {/* Tab 3: Content Mix Intelligence */}

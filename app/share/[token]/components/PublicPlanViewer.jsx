@@ -20,6 +20,7 @@ import DiagnosisViewer from "@/app/plans/[id]/components/DiagnosisViewer";
 import StrategyViewer from "@/app/plans/[id]/components/StrategyViewer";
 import PillarCards from "@/app/plans/[id]/components/PillarCards";
 import ContentItemCard from "@/app/plans/[id]/components/ContentItemCard";
+import PlanCalendarView from "@/app/plans/[id]/components/calendar/PlanCalendarView";
 import ContentMixInsights from "@/app/plans/[id]/components/ContentMixInsights";
 
 export default function PublicPlanViewer({ token }) {
@@ -274,57 +275,11 @@ export default function PublicPlanViewer({ token }) {
 
         {/* Tab 2: 30-Day Content Calendar */}
         {activeTab === "calendar" && (
-          <div className="space-y-6">
-            {/* Format Filtering bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-zinc-900 border border-zinc-800/80">
-              <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-                <Filter className="w-4 h-4 text-blue-400" />
-                <span>تصفية بحسب القالب البصري:</span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[
-                  { id: "all", label: "جميع المنشورات" },
-                  { id: "reel", label: "ريلز (Reel)" },
-                  { id: "carousel", label: "كاروسيل" },
-                  { id: "static_post", label: "منشور ثابت" },
-                  { id: "story", label: "ستوري" },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFormatFilter(f.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      formatFilter === f.id
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-zinc-950 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Content Cards Grid */}
-            {filteredItems.length === 0 ? (
-              <div className="p-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-center text-zinc-400 text-sm">
-                لا توجد منشورات تطابق القالب المحدد.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6">
-                {filteredItems.map((item) => (
-                  <ContentItemCard
-                    key={item.id || item.dayNumber}
-                    item={item}
-                    planId={null}
-                    strategy={strategy}
-                    readOnly={true}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <PlanCalendarView
+            contentItems={contentItems}
+            planId={plan.id}
+            readOnly={true}
+          />
         )}
 
         {/* Tab 3: Content Mix Analytics */}
