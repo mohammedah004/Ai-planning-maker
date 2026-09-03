@@ -22,26 +22,19 @@ export async function POST(request) {
     // EXPRESS BACKEND BRANCH (Phase 5 Feature Flag)
     // -------------------------------------------------------------
     if (isExpressBackendEnabled(authData)) {
-      const expressUrl = process.env.EXPRESS_BACKEND_URL || "http://localhost:5000";
-      console.log(`[Next.js API] 🚀 Dispatching plan creation to Express backend at: ${expressUrl}/api/v1/plans (userId: ${userId})`);
-
       const expressRes = await expressFetch("/api/v1/plans", {
         method: "POST",
         body,
         authData,
       });
 
-      console.log(`[Next.js API] 📥 Express backend response: status=${expressRes.status}, ok=${expressRes.ok}`);
-
       if (!expressRes.ok) {
-        console.error(`[Next.js API] ❌ Express backend error response:`, expressRes.data);
+        console.error(`[Next.js API] Express backend error response: status=${expressRes.status}`);
         return NextResponse.json(expressRes.data, { status: expressRes.status });
       }
 
       const planId = expressRes.data?.data?.planId;
       const jobId = expressRes.data?.data?.jobId;
-
-      console.log(`[Next.js API] ✅ Express generation job initiated: planId=${planId}, jobId=${jobId}`);
 
       return NextResponse.json(
         {
@@ -290,11 +283,6 @@ export async function POST(request) {
         ...(webhookSecret ? { Authorization: `Bearer ${webhookSecret}` } : {}),
       };
 
-      console.log("[n8n] 🚀 Firing webhook:");
-      console.log("[n8n]   URL     :", webhookUrl);
-      console.log("[n8n]   Headers :", JSON.stringify(headers));
-      console.log("[n8n]   Payload :", JSON.stringify(payload, null, 2));
-
       try {
         const webhookRes = await fetch(webhookUrl, {
           method: "POST",
@@ -304,16 +292,12 @@ export async function POST(request) {
           signal: AbortSignal.timeout(10_000),
         });
 
-        const responseText = await webhookRes.text();
-        console.log("[n8n] ✅ Webhook response:", webhookRes.status, responseText);
-
         if (!webhookRes.ok) {
-          console.error(`[n8n] ❌ Webhook returned non-2xx status ${webhookRes.status}:`, responseText);
+          console.error(`[n8n] Webhook returned non-2xx status ${webhookRes.status}`);
         }
       } catch (webhookErr) {
-        // Log the full error but do NOT block the client response — the job is queued in DB
-        console.error("[n8n] ❌ Webhook fetch failed:", webhookErr?.name, webhookErr?.message);
-        if (webhookErr?.cause) console.error("[n8n]   cause:", webhookErr.cause);
+        // Log error name/message but do NOT block the client response — the job is queued in DB
+        console.error("[n8n] Webhook fetch failed:", webhookErr?.name, webhookErr?.message);
       }
     }
 

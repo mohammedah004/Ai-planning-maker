@@ -59,7 +59,6 @@ export default function Sidebar({ user = null, className = "" }) {
               href="/plans/new"
               label="إنشاء خطة 30 يوم"
               icon={PlusCircle}
-              badge="جديد"
             />
             <SidebarItem
               href="/brands"

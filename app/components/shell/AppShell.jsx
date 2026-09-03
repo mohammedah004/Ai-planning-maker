@@ -10,7 +10,7 @@ export default function AppShell({
   className = "",
 }) {
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col lg:flex-row rtl selection:bg-blue-600/30 selection:text-white" dir="rtl">
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-[#1A1D1F] dark:text-zinc-100 flex flex-col lg:flex-row rtl selection:bg-blue-600/30 selection:text-white" dir="rtl">
       {/* Mobile Top Bar & Drawer (Visible on < lg) */}
       <MobileNav user={user} brandCount={brandCount} />
 

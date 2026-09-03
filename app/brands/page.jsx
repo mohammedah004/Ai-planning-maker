@@ -44,5 +44,5 @@ export default async function BrandsPage() {
     console.error("Brands & plans fetch exception:", err);
   }
 
-  return <BrandsClient initialBrands={brands} initialPlans={plans} />;
+  return <BrandsClient initialBrands={brands} initialPlans={plans} user={authData.user} />;
 }

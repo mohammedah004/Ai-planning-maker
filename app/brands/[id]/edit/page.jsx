@@ -1,7 +1,8 @@
 import { getAuthenticatedUser } from "@/lib/auth-guard";
 import { redirect, notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { AppShell, PageHeader } from "@/app/components/app-shell";
+import AppShell from "@/app/components/shell/AppShell";
+import PageHeader from "@/app/components/shell/PageHeader";
 import Badge from "@/app/components/ui/Badge";
 import BrandForm from "../../BrandForm";
 
@@ -38,8 +39,8 @@ export default async function EditBrandPage({ params }) {
   }
 
   return (
-    <AppShell>
-      <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+    <AppShell user={authData.user}>
+      <div className="w-full space-y-8 text-right">
         {/* Contextual Header */}
         <PageHeader
           backHref="/brands"
@@ -50,7 +51,7 @@ export default async function EditBrandPage({ params }) {
         />
 
         {/* Main Form Container */}
-        <div className="max-w-3xl mx-auto pt-8">
+        <div className="max-w-4xl">
           <BrandForm initialData={brand} isEdit={true} brandId={brand.id} />
         </div>
       </div>

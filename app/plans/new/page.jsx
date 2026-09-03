@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -65,6 +65,22 @@ function PlanFormContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState(null);
 
+  const applyBrandToForm = useCallback((brand) => {
+    setSelectedBrandId(brand.id);
+    setFormData((prev) => ({
+      ...prev,
+      product_name: brand.product_name || "",
+      product_description: brand.product_description || "",
+      product_category: brand.product_category || "",
+      target_audience: brand.target_audience || "",
+      problem_solved: brand.problem_solved || "",
+      brand_tone: Array.isArray(brand.brand_tone) ? brand.brand_tone : [],
+      website_url: brand.website_url || "",
+      additional_context: brand.additional_context || "",
+    }));
+    setErrors({});
+  }, []);
+
   // Fetch user's saved brand profiles
   useEffect(() => {
     async function loadBrands() {
@@ -89,23 +105,7 @@ function PlanFormContent() {
       }
     }
     loadBrands();
-  }, [queryBrandId]);
-
-  const applyBrandToForm = (brand) => {
-    setSelectedBrandId(brand.id);
-    setFormData((prev) => ({
-      ...prev,
-      product_name: brand.product_name || "",
-      product_description: brand.product_description || "",
-      product_category: brand.product_category || "",
-      target_audience: brand.target_audience || "",
-      problem_solved: brand.problem_solved || "",
-      brand_tone: Array.isArray(brand.brand_tone) ? brand.brand_tone : [],
-      website_url: brand.website_url || "",
-      additional_context: brand.additional_context || "",
-    }));
-    setErrors({});
-  };
+  }, [queryBrandId, applyBrandToForm]);
 
   const handleBrandSelect = (e) => {
     const bId = e.target.value;
@@ -246,24 +246,24 @@ function PlanFormContent() {
           {/* Main Briefing Form (8 cols on desktop) */}
           <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-8 text-right">
             {/* Brand Memory Anchor */}
-            <Card padding="md" className="space-y-4 border-zinc-800/80 bg-[#131316]">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-zinc-800/80">
+            <Card padding="md" className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#E4E7EC] dark:border-zinc-800/80">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-[#0B57D0] dark:bg-blue-600/10 dark:border-blue-500/20 dark:text-blue-400 flex items-center justify-center">
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-100 flex items-center gap-2">
                       <span>ذاكرة البراند الذكية</span>
                       <Badge variant="blue" size="sm">تعبئة فورية</Badge>
                     </h3>
-                    <p className="text-[11px] text-zinc-400">استورد بيانات منتج محفوظ لتسريع التخطيط</p>
+                    <p className="text-[11px] text-[#575C61] dark:text-zinc-400">استورد بيانات منتج محفوظ لتسريع التخطيط</p>
                   </div>
                 </div>
 
                 <Link
                   href="/brands/new"
-                  className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-bold self-start sm:self-auto hover:underline"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#0B57D0] hover:text-[#0842a0] dark:text-blue-400 dark:hover:text-blue-300 font-bold self-start sm:self-auto hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>إضافة براند جديد</span>
@@ -286,7 +286,7 @@ function PlanFormContent() {
                     }
                   >
                     {brands.map((brand) => (
-                      <option key={brand.id} value={brand.id} className="bg-zinc-900 text-zinc-100">
+                      <option key={brand.id} value={brand.id} className="bg-white text-[#1A1D1F] dark:bg-zinc-900 dark:text-zinc-100">
                         {brand.name} ({brand.product_name}) {brand.is_default ? "★ افتراضي" : ""}
                       </option>
                     ))}
@@ -308,7 +308,7 @@ function PlanFormContent() {
               </div>
 
               {selectedBrandId && (
-                <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/30 border border-emerald-800/50 p-3 rounded-xl">
+                <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-800/50 p-3 rounded-xl">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>تم استيراد بيانات البراند تلقائياً. يمكنك تعديل أي تفاصيل أو اختيار هدف هذا الشهر أدناه.</span>
                 </div>
@@ -317,13 +317,13 @@ function PlanFormContent() {
 
             {/* Station 1: Product & Value Proposition */}
             <Card padding="lg" className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/80">
-                <div className="w-8 h-8 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-[#0B57D0] dark:bg-blue-600/10 dark:border-blue-500/20 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
                   01
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-zinc-100">هوية المنتج والحل الجوهري</h2>
-                  <p className="text-xs text-zinc-400">التفاصيل الأساسية لما تقوم بتسويقه وبيعه</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">هوية المنتج والحل الجوهري</h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">التفاصيل الأساسية لما تقوم بتسويقه وبيعه</p>
                 </div>
               </div>
 
@@ -380,13 +380,13 @@ function PlanFormContent() {
 
             {/* Station 2: Audience & Monthly Objective */}
             <Card padding="lg" className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/80">
-                <div className="w-8 h-8 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 dark:bg-purple-600/10 dark:border-purple-500/20 dark:text-purple-400 flex items-center justify-center font-bold text-xs">
                   02
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-zinc-100">الجمهور والهدف التسويقي</h2>
-                  <p className="text-xs text-zinc-400">فهم عميق لنفسية المشتري وتحديد بوصلة الشهر</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">الجمهور والهدف التسويقي</h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">فهم عميق لنفسية المشتري وتحديد بوصلة الشهر</p>
                 </div>
               </div>
 
@@ -414,7 +414,7 @@ function PlanFormContent() {
                   helperText="يحدد هذا الخيار نسب توزيع المحتوى بين التوعية، التعليم، الإثبات الاجتماعي، والمبيعات."
                 >
                   {MARKETING_OBJECTIVES.map((obj) => (
-                    <option key={obj.value} value={obj.value} className="bg-zinc-900 text-zinc-100">
+                    <option key={obj.value} value={obj.value} className="bg-white text-[#1A1D1F] dark:bg-zinc-900 dark:text-zinc-100">
                       {obj.label}
                     </option>
                   ))}
@@ -424,20 +424,20 @@ function PlanFormContent() {
 
             {/* Station 3: Brand Voice & Delivery Tone */}
             <Card padding="lg" className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/80">
-                <div className="w-8 h-8 rounded-xl bg-amber-600/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 dark:bg-amber-600/10 dark:border-amber-500/20 dark:text-amber-400 flex items-center justify-center font-bold text-xs">
                   03
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-zinc-100">نبرة صوت المحتوى (Brand Tone)</h2>
-                  <p className="text-xs text-zinc-400">اختر من 1 إلى 3 نبرات لتوجيه صياغة الكابشن والسيناريو</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">نبرة صوت المحتوى (Brand Tone)</h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">اختر من 1 إلى 3 نبرات لتوجيه صياغة الكابشن والسيناريو</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-zinc-300">النبرات المتاحة</span>
-                  <span className="text-xs text-blue-400 font-bold tabular-nums">
+                  <span className="text-xs font-bold text-[#1A1D1F] dark:text-zinc-300">النبرات المتاحة</span>
+                  <span className="text-xs text-[#0B57D0] dark:text-blue-400 font-bold tabular-nums">
                     تم اختيار {formData.brand_tone.length} من 3
                   </span>
                 </div>
@@ -455,10 +455,10 @@ function PlanFormContent() {
                         onClick={() => toggleTone(tone)}
                         className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold border transition-all cursor-pointer select-none ${
                           isSelected
-                            ? "bg-blue-600 text-white border-blue-500 shadow-sm shadow-blue-900/30"
+                            ? "bg-[#0B57D0] text-white border-[#0B57D0] shadow-sm shadow-blue-900/20"
                             : isLimitReached
-                            ? "bg-zinc-950/40 border-zinc-850 text-zinc-600 cursor-not-allowed opacity-50"
-                            : "bg-[#09090b] border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-zinc-100"
+                            ? "bg-zinc-100 border-zinc-200 text-zinc-400 dark:bg-zinc-950/40 dark:border-zinc-850 dark:text-zinc-600 cursor-not-allowed opacity-50"
+                            : "bg-white border-[#E4E7EC] text-[#1A1D1F] hover:border-zinc-300 hover:bg-[#F0F4F8] dark:bg-[#09090b] dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
                         }`}
                       >
                         <span>{tone}</span>
@@ -467,19 +467,19 @@ function PlanFormContent() {
                     );
                   })}
                 </div>
-                {errors.brand_tone && <p className="text-xs text-red-400 font-bold">{errors.brand_tone}</p>}
+                {errors.brand_tone && <p className="text-xs text-red-500 font-bold">{errors.brand_tone}</p>}
               </div>
             </Card>
 
             {/* Station 4: Tactical Context & Links */}
             <Card padding="lg" className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/80">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 dark:bg-emerald-600/10 dark:border-emerald-500/20 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
                   04
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-zinc-100">الملاحظات التكتيكية وتوجيهات الـ CTA</h2>
-                  <p className="text-xs text-zinc-400">تفاصيل إضافية لتخصيص الدعوة لاتخاذ إجراء والعروض الموسمية (اختياري)</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">الملاحظات التكتيكية وتوجيهات الـ CTA</h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">تفاصيل إضافية لتخصيص الدعوة لاتخاذ إجراء والعروض الموسمية (اختياري)</p>
                 </div>
               </div>
 
@@ -522,7 +522,7 @@ function PlanFormContent() {
               >
                 {isSubmitting ? "جاري إعداد محرك التوليد والربط..." : "توليد خطة واستراتيجية الـ 30 يوماً"}
               </Button>
-              <p className="text-center text-xs text-zinc-500 mt-3 leading-relaxed">
+              <p className="text-center text-xs text-[#575C61] dark:text-zinc-500 mt-3 leading-relaxed">
                 تستغرق عملية التحليل وبناء الاستراتيجية وتنسيق تقويم الـ 30 يوماً وتصدير Google Sheet من 60 إلى 90 ثانية.
               </p>
             </div>
@@ -530,45 +530,45 @@ function PlanFormContent() {
 
           {/* Strategic Guidance Sidebar (4 cols on desktop) */}
           <div className="lg:col-span-4 space-y-5 sticky top-6 hidden lg:block">
-            <Card padding="md" className="space-y-4 bg-[#0d0d10] border-zinc-800">
-              <div className="flex items-center gap-2 text-xs font-extrabold text-blue-400">
+            <Card padding="md" className="space-y-4">
+              <div className="flex items-center gap-2 text-xs font-extrabold text-[#0B57D0] dark:text-blue-400">
                 <Compass className="w-4 h-4" />
                 <span>كيف يعمل المحرك الاستراتيجي؟</span>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-xs text-[#575C61] dark:text-zinc-400 leading-relaxed">
                 لا يقوم المحرك بتوليد نصوص عشوائية، بل يعالج هذا البريف عبر 4 مراحل هندسية متتالية:
               </p>
 
               <div className="space-y-3 pt-2">
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/60 space-y-1">
-                  <div className="text-xs font-bold text-zinc-200">1. التشخيص وتحديد التموضع</div>
-                  <div className="text-[11px] text-zinc-400">تحليل مرحلة نضج المنتج وصياغة زوايا الإقناع الفريدة.</div>
+                <div className="p-3 rounded-xl bg-white border border-[#E4E7EC] dark:bg-zinc-900/60 dark:border-zinc-800/60 space-y-1 shadow-xs">
+                  <div className="text-xs font-bold text-[#1A1D1F] dark:text-zinc-200">1. التشخيص وتحديد التموضع</div>
+                  <div className="text-[11px] text-[#575C61] dark:text-zinc-400">تحليل مرحلة نضج المنتج وصياغة زوايا الإقناع الفريدة.</div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/60 space-y-1">
-                  <div className="text-xs font-bold text-zinc-200">2. هندسة محاور المحتوى</div>
-                  <div className="text-[11px] text-zinc-400">موازنة نسب التوعية والتعليم والتفاعل والتحويل المباشر.</div>
+                <div className="p-3 rounded-xl bg-white border border-[#E4E7EC] dark:bg-zinc-900/60 dark:border-zinc-800/60 space-y-1 shadow-xs">
+                  <div className="text-xs font-bold text-[#1A1D1F] dark:text-zinc-200">2. هندسة محاور المحتوى</div>
+                  <div className="text-[11px] text-[#575C61] dark:text-zinc-400">موازنة نسب التوعية والتعليم والتفاعل والتحويل المباشر.</div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/60 space-y-1">
-                  <div className="text-xs font-bold text-zinc-200">3. تقويم الـ 30 يوماً والمخرج البصري</div>
-                  <div className="text-[11px] text-zinc-400">صياغة كابشن كامل مع توجيهات التصميم وسيناريو الريلز.</div>
+                <div className="p-3 rounded-xl bg-white border border-[#E4E7EC] dark:bg-zinc-900/60 dark:border-zinc-800/60 space-y-1 shadow-xs">
+                  <div className="text-xs font-bold text-[#1A1D1F] dark:text-zinc-200">3. تقويم الـ 30 يوماً والمخرج البصري</div>
+                  <div className="text-[11px] text-[#575C61] dark:text-zinc-400">صياغة كابشن كامل مع توجيهات التصميم وسيناريو الريلز.</div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/60 space-y-1">
-                  <div className="text-xs font-bold text-zinc-200">4. تصدير Google Sheet المعتمد</div>
-                  <div className="text-[11px] text-zinc-400">ملف جداول منظم وجاهز للتسليم لفريق التنفيذ أو العميل.</div>
+                <div className="p-3 rounded-xl bg-white border border-[#E4E7EC] dark:bg-zinc-900/60 dark:border-zinc-800/60 space-y-1 shadow-xs">
+                  <div className="text-xs font-bold text-[#1A1D1F] dark:text-zinc-200">4. تصدير Google Sheet المعتمد</div>
+                  <div className="text-[11px] text-[#575C61] dark:text-zinc-400">ملف جداول منظم وجاهز للتسليم لفريق التنفيذ أو العميل.</div>
                 </div>
               </div>
             </Card>
 
-            <Card padding="md" className="bg-zinc-900/30 border-zinc-800/50 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
+            <Card padding="md" className="bg-amber-50/60 border-amber-200/80 dark:bg-zinc-900/30 dark:border-zinc-800/50 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400">
                 <Lightbulb className="w-4 h-4" />
                 <span>نصيحة لصياغة بريف فعال</span>
               </div>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">
-                ركّز في خانة <strong className="text-zinc-200">المشكلة التي يحلها المنتج</strong> على مشاعر الإحباط أو الهدر التي يشعر بها العميل؛ حيث تُنتج هذه المدخلات أقوى خطافات (Hooks) للريلز في الأسابيع الأولى.
+              <p className="text-[11px] text-[#575C61] dark:text-zinc-400 leading-relaxed">
+                ركّز في خانة <strong className="text-[#1A1D1F] dark:text-zinc-200">المشكلة التي يحلها المنتج</strong> على مشاعر الإحباط أو الهدر التي يشعر بها العميل؛ حيث تُنتج هذه المدخلات أقوى خطافات (Hooks) للريلز في الأسابيع الأولى.
               </p>
             </Card>
           </div>
@@ -582,7 +582,7 @@ export default function NewPlanPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-100">
+        <div className="min-h-screen bg-white dark:bg-[#09090b] flex items-center justify-center text-[#1A1D1F] dark:text-zinc-100">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
         </div>
       }

@@ -12,8 +12,8 @@ export default function DayDetailPage({ params }) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-100">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <div className="min-h-screen bg-white dark:bg-[#09090b] flex items-center justify-center text-[#1A1D1F] dark:text-zinc-100">
+          <Loader2 className="w-8 h-8 text-[#0B57D0] animate-spin" />
         </div>
       }
     >

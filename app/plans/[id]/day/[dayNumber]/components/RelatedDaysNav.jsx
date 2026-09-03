@@ -25,11 +25,11 @@ export default function RelatedDaysNav({
   const nextSingleDay = allContentItems.find((i) => i.dayNumber === currentNum + 1);
 
   return (
-    <div className={`space-y-4 pt-6 border-t border-zinc-800/80 text-right ${className}`}>
+    <div className={`space-y-4 pt-6 border-t border-[#E4E7EC] dark:border-zinc-800/80 text-right ${className}`}>
       {/* Section Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2 font-extrabold text-sm text-zinc-200">
-          <Compass className="w-4 h-4 text-blue-400" />
+        <div className="flex items-center gap-2 font-extrabold text-sm text-[#1A1D1F] dark:text-zinc-200">
+          <Compass className="w-4 h-4 text-[#0B57D0] dark:text-blue-400" />
           <span>استكشف الخطة (أيام مجاورة)</span>
         </div>
 
@@ -38,7 +38,7 @@ export default function RelatedDaysNav({
           {prevSingleDay && (
             <Link
               href={`/plans/${planId}/day/${prevSingleDay.dayNumber}`}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F0F4F8] border border-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-300 text-xs font-bold transition-colors shadow-xs"
             >
               <ChevronRight className="w-3.5 h-3.5" />
               <span>اليوم السابق ({prevSingleDay.dayNumber})</span>
@@ -48,7 +48,7 @@ export default function RelatedDaysNav({
           {nextSingleDay && (
             <Link
               href={`/plans/${planId}/day/${nextSingleDay.dayNumber}`}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-bold transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F0F4F8] border border-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-300 text-xs font-bold transition-colors shadow-xs"
             >
               <span>اليوم التالي ({nextSingleDay.dayNumber})</span>
               <ChevronLeft className="w-3.5 h-3.5" />

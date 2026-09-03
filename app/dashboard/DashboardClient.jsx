@@ -133,9 +133,10 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                 variant="secondary"
                 size="md"
                 startIcon={Building2}
+                className="bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm dark:bg-zinc-800/90 dark:hover:bg-zinc-700/90 dark:text-zinc-100 dark:border-zinc-750"
               >
                 <span>ذاكرة البراند</span>
-                <span className="px-1.5 py-0.2 bg-zinc-800 text-zinc-300 text-xs rounded-full tabular-nums">
+                <span className="px-1.5 py-0.2 bg-zinc-800 dark:bg-zinc-700 text-zinc-300 text-xs rounded-full tabular-nums">
                   {brands.length}
                 </span>
               </Button>
@@ -190,12 +191,12 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
         {/* Plans Section */}
         <div className="space-y-5 pt-4">
           {/* Section Bar & Filtering Controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-zinc-800/80">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#E4E7EC] dark:border-zinc-800/80">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-extrabold text-zinc-100">
+              <h2 className="text-lg font-extrabold text-[#1A1D1F] dark:text-zinc-100">
                 الخطط التسويقية
               </h2>
-              <span className="text-xs text-zinc-400 font-bold tabular-nums">
+              <span className="text-xs text-[#575C61] dark:text-zinc-400 font-bold tabular-nums">
                 ({filteredPlans.length} من أصل {plans.length})
               </span>
             </div>
@@ -209,9 +210,9 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="ابحث باسم المنتج أو الفئة..."
-                    className="w-56 sm:w-64 py-2 pr-9 pl-4 rounded-xl bg-[#09090b] text-xs text-zinc-100 placeholder-zinc-500 border border-zinc-800 focus:border-blue-500 focus:outline-none transition-colors"
+                    className="w-56 sm:w-64 py-2 pr-9 pl-4 rounded-xl bg-white dark:bg-[#09090b] text-xs text-[#1A1D1F] dark:text-zinc-100 placeholder-[#575C61] dark:placeholder-zinc-500 border border-[#E4E7EC] dark:border-zinc-800 focus:border-[#0B57D0] focus:outline-none transition-colors shadow-xs"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#575C61] dark:text-zinc-500 pointer-events-none">
                     <Search className="w-3.5 h-3.5" />
                   </div>
                 </div>
@@ -260,8 +261,8 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
             />
           ) : filteredPlans.length === 0 ? (
             /* Empty State for Filter Query */
-            <div className="p-12 text-center rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800 space-y-3">
-              <p className="text-sm font-bold text-zinc-300">
+            <div className="p-12 text-center rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900/40 border border-dashed border-[#E4E7EC] dark:border-zinc-800 space-y-3">
+              <p className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-300">
                 لا توجد خطط تسويقية تطابق بحثك الحالي
               </p>
               <Button
@@ -301,10 +302,10 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                     key={plan.id}
                     variant="interactive"
                     padding="none"
-                    className="flex flex-col justify-between overflow-hidden group border-zinc-800/80 hover:border-zinc-700"
+                    className="flex flex-col justify-between overflow-hidden group border-[#E4E7EC] dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700"
                   >
                     {/* Card Header */}
-                    <div className="p-5 pb-3 border-b border-zinc-850/80 flex items-start justify-between gap-3">
+                    <div className="p-5 pb-3 border-b border-[#E4E7EC] dark:border-zinc-850/80 flex items-start justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {plan.product_category && (
                           <Badge variant="blue" size="sm">
@@ -326,7 +327,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                         }}
                         title="حذف الخطة"
                         aria-label="حذف الخطة"
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800/80 transition-colors cursor-pointer shrink-0"
+                        className="p-1.5 rounded-lg text-[#575C61] hover:text-red-600 hover:bg-[#F0F4F8] dark:text-zinc-500 dark:hover:text-red-400 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -334,8 +335,8 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
 
                     {/* Card Body */}
                     <div className="p-5 space-y-3 flex-1">
-                      <Link href={`/plans/${plan.id}`} className="block group-hover:text-blue-400 transition-colors">
-                        <h3 className="text-base font-extrabold text-zinc-100 tracking-tight leading-snug line-clamp-2">
+                      <Link href={`/plans/${plan.id}`} className="block group-hover:text-[#0B57D0] dark:group-hover:text-blue-400 transition-colors">
+                        <h3 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100 tracking-tight leading-snug line-clamp-2">
                           {plan.product_name}
                         </h3>
                       </Link>
@@ -361,8 +362,8 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                     </div>
 
                     {/* Card Footer */}
-                    <div className="p-4 px-5 bg-zinc-950/40 border-t border-zinc-850/80 flex items-center justify-between gap-3">
-                      <span className="text-[11px] text-zinc-500 font-medium tabular-nums">
+                    <div className="p-4 px-5 bg-white/80 dark:bg-zinc-950/40 border-t border-[#E4E7EC] dark:border-zinc-850/80 flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-[#575C61] dark:text-zinc-500 font-medium tabular-nums">
                         {formattedDate}
                       </span>
 
@@ -373,7 +374,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 hover:bg-emerald-900/40 transition-colors"
+                            className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-400 dark:hover:bg-emerald-900/40 transition-colors"
                             title="فتح ملف Google Sheet المعتمد"
                           >
                             <FileSpreadsheet className="w-4 h-4" />

@@ -5,19 +5,19 @@ import { Loader2 } from "lucide-react";
 
 const variantStyles = {
   primary:
-    "bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-sm shadow-blue-900/30 border border-blue-500/30",
+    "bg-[#0B57D0] hover:bg-[#0842a0] active:bg-[#06327a] text-white shadow-sm shadow-blue-900/20 border border-blue-600/30",
   secondary:
-    "bg-zinc-800/90 hover:bg-zinc-700/90 active:bg-zinc-800 text-zinc-100 border border-zinc-750",
+    "bg-white hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#0B57D0] border border-[#E4E7EC] shadow-xs dark:bg-zinc-800/90 dark:hover:bg-zinc-700/90 dark:active:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-750",
   outline:
-    "bg-transparent hover:bg-zinc-800/60 active:bg-zinc-800 text-zinc-300 hover:text-zinc-100 border border-zinc-800 hover:border-zinc-700",
+    "bg-transparent hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] border border-[#E4E7EC] dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 dark:text-zinc-300 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700",
   ghost:
-    "bg-transparent hover:bg-zinc-800/60 active:bg-zinc-800 text-zinc-400 hover:text-zinc-100",
+    "bg-transparent hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100",
   danger:
     "bg-red-600 hover:bg-red-500 active:bg-red-700 text-white shadow-sm shadow-red-950/40 border border-red-500/30",
   emerald:
     "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-sm shadow-emerald-950/40 border border-emerald-500/30",
   subtle:
-    "bg-zinc-900/90 hover:bg-zinc-850 active:bg-zinc-900 text-zinc-300 hover:text-zinc-100 border border-zinc-800",
+    "bg-[#F8F9FB] hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] border border-[#E4E7EC] dark:bg-zinc-900/90 dark:hover:bg-zinc-850 dark:active:bg-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 dark:border-zinc-800",
 };
 
 const sizeStyles = {

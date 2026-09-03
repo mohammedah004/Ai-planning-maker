@@ -26,43 +26,43 @@ export default async function LoginPage({ searchParams }) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden selection:bg-indigo-500 selection:text-white">
+    <main className="min-h-screen bg-white dark:bg-slate-950 text-[#1A1D1F] dark:text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden selection:bg-blue-100 dark:selection:bg-indigo-500 selection:text-[#0B57D0] dark:selection:text-white">
       {/* Background glowing gradients */}
-      <div className="absolute top-1/4 -right-48 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -left-48 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 -right-48 w-96 h-96 bg-blue-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -left-48 w-96 h-96 bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand header */}
         <div className="text-center mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-indigo-400 text-sm font-medium hover:border-slate-700 transition-colors mb-4"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-[#E4E7EC] dark:border-slate-800 text-[#0B57D0] dark:text-indigo-400 text-sm font-medium hover:border-blue-300 dark:hover:border-slate-700 transition-colors mb-4 shadow-xs"
           >
             <Sparkles className="w-4 h-4" />
             <span>مخطط التسويق الذكي</span>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight text-white">مرحباً بك مجدداً</h1>
-          <p className="text-slate-400 mt-2 text-sm">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1A1D1F] dark:text-white">مرحباً بك مجدداً</h1>
+          <p className="text-[#575C61] dark:text-slate-400 mt-2 text-sm">
             سجل دخولك لإنشاء وإدارة وتصدير خطط محتوى إنستغرام لشهر كامل.
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl shadow-indigo-950/40">
+        <div className="bg-[#F8F9FB] dark:bg-slate-900/80 backdrop-blur-xl border border-[#E4E7EC] dark:border-slate-800 rounded-2xl p-8 shadow-xs dark:shadow-2xl dark:shadow-indigo-950/40">
           <GoogleSignInButton callbackUrl={callbackUrl} />
 
           {/* Value highlights */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80 space-y-3.5">
-            <div className="flex items-center gap-2.5 text-xs text-slate-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="mt-8 pt-6 border-t border-[#E4E7EC] dark:border-slate-800/80 space-y-3.5">
+            <div className="flex items-center gap-2.5 text-xs text-[#575C61] dark:text-slate-400">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>تسجيل دخول فوري وآمن عبر Google OAuth</span>
             </div>
-            <div className="flex items-center gap-2.5 text-xs text-slate-400">
-              <Calendar className="w-4 h-4 text-indigo-400 shrink-0" />
+            <div className="flex items-center gap-2.5 text-xs text-[#575C61] dark:text-slate-400">
+              <Calendar className="w-4 h-4 text-[#0B57D0] dark:text-indigo-400 shrink-0" />
               <span>بناء استراتيجية وجدول محتوى متوازن لـ 30 يوماً</span>
             </div>
-            <div className="flex items-center gap-2.5 text-xs text-slate-400">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="flex items-center gap-2.5 text-xs text-[#575C61] dark:text-slate-400">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>تصدير مباشر لملفات Google Sheets جاهزة للمصممين</span>
             </div>
           </div>
@@ -72,7 +72,7 @@ export default async function LoginPage({ searchParams }) {
         <div className="text-center mt-6">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-[#575C61] hover:text-[#1A1D1F] dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
           >
             <span>العودة للصفحة الرئيسية</span>
             <ArrowLeft className="w-3.5 h-3.5" />

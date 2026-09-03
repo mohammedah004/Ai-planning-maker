@@ -22,9 +22,9 @@ export default function Select({
       {label && (
         <label
           htmlFor={id}
-          className="block text-xs font-bold uppercase tracking-wider text-zinc-300"
+          className="block text-xs font-bold uppercase tracking-wider text-[#1A1D1F] dark:text-zinc-300"
         >
-          {label} {required && <span className="text-red-400 font-bold">*</span>}
+          {label} {required && <span className="text-red-500 font-bold">*</span>}
         </label>
       )}
 
@@ -35,20 +35,20 @@ export default function Select({
           onChange={onChange}
           disabled={disabled}
           className={`
-            w-full pr-4 pl-10 py-3 rounded-xl bg-[#09090b] text-sm text-zinc-100
+            w-full pr-4 pl-10 py-3 rounded-xl bg-white dark:bg-[#09090b] text-sm text-[#1A1D1F] dark:text-zinc-100
             border transition-all duration-150 focus:outline-none appearance-none cursor-pointer
             disabled:opacity-50 disabled:cursor-not-allowed
             ${
               error
                 ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
-                : "border-zinc-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40"
+                : "border-[#E4E7EC] dark:border-zinc-800 focus:border-[#0B57D0] focus:ring-1 focus:ring-[#0B57D0]/30 dark:focus:border-blue-500"
             }
             ${className}
           `.trim()}
           {...props}
         >
           {placeholder && (
-            <option value="" disabled className="bg-zinc-900 text-zinc-500">
+            <option value="" disabled className="bg-white text-[#575C61] dark:bg-zinc-900 dark:text-zinc-500">
               {placeholder}
             </option>
           )}
@@ -57,7 +57,7 @@ export default function Select({
                 <option
                   key={typeof opt === "object" ? opt.value : opt}
                   value={typeof opt === "object" ? opt.value : opt}
-                  className="bg-zinc-900 text-zinc-100 py-1"
+                  className="bg-white text-[#1A1D1F] dark:bg-zinc-900 dark:text-zinc-100 py-1"
                 >
                   {typeof opt === "object" ? opt.label : opt}
                 </option>
@@ -66,13 +66,13 @@ export default function Select({
         </select>
 
         {/* Custom RTL-positioned chevron icon on the left */}
-        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#575C61] dark:text-zinc-500">
           <ChevronDown className="w-4 h-4" />
         </div>
       </div>
 
-      {error && <p className="text-xs text-red-400 font-bold">{error}</p>}
-      {!error && helperText && <p className="text-[11px] text-zinc-500">{helperText}</p>}
+      {error && <p className="text-xs text-red-500 font-bold">{error}</p>}
+      {!error && helperText && <p className="text-[11px] text-[#575C61] dark:text-zinc-500">{helperText}</p>}
     </div>
   );
 }

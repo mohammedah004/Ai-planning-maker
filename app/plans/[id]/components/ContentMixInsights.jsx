@@ -32,20 +32,20 @@ export default function ContentMixInsights({ contentItems = [] }) {
           {insights.map((insight, idx) => (
             <div
               key={idx}
-              className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm space-y-3 flex flex-col justify-between"
+              className="p-5 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs space-y-3 flex flex-col justify-between"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-300 text-[11px] font-extrabold">
+                  <span className="px-2.5 py-0.5 rounded-full border border-[#E4E7EC] bg-white text-[#1A1D1F] dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 text-[11px] font-extrabold shadow-xs">
                     {insight.badge}
                   </span>
-                  <div className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-lg bg-blue-50 text-[#0B57D0] dark:bg-blue-600/10 dark:text-blue-400 flex items-center justify-center">
                     <Lightbulb className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <h4 className="text-sm font-bold text-zinc-100 leading-snug">{insight.title}</h4>
-                <p className="text-xs text-zinc-300 leading-relaxed">{insight.description}</p>
+                <h4 className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-100 leading-snug">{insight.title}</h4>
+                <p className="text-xs text-[#575C61] dark:text-zinc-300 leading-relaxed">{insight.description}</p>
               </div>
             </div>
           ))}
@@ -55,12 +55,12 @@ export default function ContentMixInsights({ contentItems = [] }) {
       {/* 2. Charts Grid: Objectives Distribution & Format Diversity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Objective Mix Breakdown */}
-        <div className="p-6 sm:p-7 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-            <span className="text-xs text-zinc-500">إجمالي {contentItems.length} منشور</span>
-            <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+        <div className="p-6 sm:p-7 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E4E7EC] dark:border-zinc-800">
+            <span className="text-xs text-[#575C61] dark:text-zinc-500">إجمالي {contentItems.length} منشور</span>
+            <div className="flex items-center gap-2 text-[#0B57D0] dark:text-blue-400 font-bold text-sm">
               <Target className="w-4 h-4" />
-              <h3 className="text-sm sm:text-base text-zinc-100 font-bold">توزيع أهداف المحتوى (Content Objectives)</h3>
+              <h3 className="text-sm sm:text-base text-[#1A1D1F] dark:text-zinc-100 font-bold">توزيع أهداف المحتوى (Content Objectives)</h3>
             </div>
           </div>
 
@@ -70,14 +70,14 @@ export default function ContentMixInsights({ contentItems = [] }) {
               .map((obj) => (
                 <div key={obj.key} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 font-bold">
-                      <strong className="text-zinc-100">{obj.count}</strong> منشور ({obj.percentage}%)
+                    <span className="text-[#575C61] dark:text-zinc-400 font-bold">
+                      <strong className="text-[#1A1D1F] dark:text-zinc-100">{obj.count}</strong> منشور ({obj.percentage}%)
                     </span>
-                    <span className="font-bold text-zinc-200">{obj.shortLabel}</span>
+                    <span className="font-bold text-[#1A1D1F] dark:text-zinc-200">{obj.shortLabel}</span>
                   </div>
 
                   {/* CSS Progress Bar */}
-                  <div className="w-full h-2 rounded-full bg-zinc-950 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-950 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${obj.color}`}
                       style={{ width: `${Math.max(obj.percentage, 4)}%` }}
@@ -89,36 +89,36 @@ export default function ContentMixInsights({ contentItems = [] }) {
         </div>
 
         {/* Format Diversity Breakdown */}
-        <div className="p-6 sm:p-7 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-            <span className="text-xs text-zinc-500">تنوع القوالب</span>
-            <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+        <div className="p-6 sm:p-7 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E4E7EC] dark:border-zinc-800">
+            <span className="text-xs text-[#575C61] dark:text-zinc-500">تنوع القوالب</span>
+            <div className="flex items-center gap-2 text-purple-700 dark:text-purple-400 font-bold text-sm">
               <Layers className="w-4 h-4" />
-              <h3 className="text-sm sm:text-base text-zinc-100 font-bold">تنوع القوالب والأشكال (Format Diversity)</h3>
+              <h3 className="text-sm sm:text-base text-[#1A1D1F] dark:text-zinc-100 font-bold">تنوع القوالب والأشكال (Format Diversity)</h3>
             </div>
           </div>
 
           <div className="space-y-4">
             {formatMix.map((fmt) => (
-              <div key={fmt.key} className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
+              <div key={fmt.key} className="p-3.5 rounded-xl bg-white dark:bg-zinc-950 border border-[#E4E7EC] dark:border-zinc-800 space-y-2 shadow-xs">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-300 font-bold">
-                    <strong className="text-zinc-100">{fmt.count}</strong> منشور ({fmt.percentage}%)
+                  <span className="text-[#575C61] dark:text-zinc-300 font-bold">
+                    <strong className="text-[#1A1D1F] dark:text-zinc-100">{fmt.count}</strong> منشور ({fmt.percentage}%)
                   </span>
-                  <div className="flex items-center gap-1.5 font-bold text-zinc-100">
+                  <div className="flex items-center gap-1.5 font-bold text-[#1A1D1F] dark:text-zinc-100">
                     <span>{fmt.label}</span>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-2 rounded-full bg-zinc-900 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${fmt.color}`}
                     style={{ width: `${Math.max(fmt.percentage, 4)}%` }}
                   />
                 </div>
 
-                <p className="text-[11px] text-zinc-400 leading-relaxed pt-0.5">
+                <p className="text-[11px] text-[#575C61] dark:text-zinc-400 leading-relaxed pt-0.5">
                   {fmt.description}
                 </p>
               </div>

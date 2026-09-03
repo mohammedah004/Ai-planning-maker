@@ -19,10 +19,11 @@ export default function MobileNav({ user = null, className = "" }) {
   const pathname = usePathname();
   const drawerRef = useRef(null);
 
-  // Close drawer on route navigation
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   // Handle body scroll lock & Escape key
   useEffect(() => {

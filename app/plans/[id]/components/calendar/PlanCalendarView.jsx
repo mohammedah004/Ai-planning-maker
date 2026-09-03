@@ -38,9 +38,9 @@ export default function PlanCalendarView({
   return (
     <div className={`space-y-8 text-right ${className}`}>
       {/* Top Filter Bar (Preserved existing format filter functionality) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[#131316] border border-zinc-800/80">
-        <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
-          <Filter className="w-4 h-4 text-blue-400" />
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[#F8F9FB] dark:bg-[#131316] border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs">
+        <div className="flex items-center gap-2 text-xs font-bold text-[#1A1D1F] dark:text-zinc-300">
+          <Filter className="w-4 h-4 text-[#0B57D0] dark:text-blue-400" />
           <span>تصفية بحسب القالب البصري:</span>
         </div>
 
@@ -58,12 +58,12 @@ export default function PlanCalendarView({
               onClick={() => setFormatFilter(f.id)}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 formatFilter === f.id
-                  ? "bg-blue-600 text-white shadow-sm border border-blue-500/40"
-                  : "bg-zinc-900 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 border border-zinc-800"
+                  ? "bg-[#0B57D0] text-white shadow-sm border border-[#0B57D0]"
+                  : "bg-white dark:bg-zinc-900 text-[#575C61] dark:text-zinc-400 hover:text-[#1A1D1F] dark:hover:text-zinc-100 hover:bg-[#F0F4F8] dark:hover:bg-zinc-800 border border-[#E4E7EC] dark:border-zinc-800 shadow-xs"
               }`}
             >
               <span>{f.label}</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-black/30 opacity-80 tabular-nums">
+              <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-black/10 dark:bg-black/30 opacity-80 tabular-nums">
                 {f.count}
               </span>
             </button>
@@ -73,23 +73,23 @@ export default function PlanCalendarView({
 
       {/* Empty Filter State */}
       {filteredItems.length === 0 ? (
-        <div className="p-12 rounded-3xl bg-[#131316] border border-zinc-800 text-center text-zinc-400 text-sm space-y-2">
-          <p className="font-bold text-zinc-200">لا توجد منشورات تطابق هذا القالب</p>
-          <p className="text-xs text-zinc-500">اختر قالباً آخر أو اضغط على &quot;جميع المنشورات&quot; لاستعراض الشهر كاملاً.</p>
+        <div className="p-12 rounded-3xl bg-[#F8F9FB] dark:bg-[#131316] border border-[#E4E7EC] dark:border-zinc-800 text-center text-[#575C61] dark:text-zinc-400 text-sm space-y-2 shadow-xs">
+          <p className="font-bold text-[#1A1D1F] dark:text-zinc-200">لا توجد منشورات تطابق هذا القالب</p>
+          <p className="text-xs text-[#575C61] dark:text-zinc-500">اختر قالباً آخر أو اضغط على &quot;جميع المنشورات&quot; لاستعراض الشهر كاملاً.</p>
         </div>
       ) : (
         /* Weekly Sectioned Calendar Grid */
         <div className="space-y-10">
           {weeks.map((week, idx) => (
             <div key={week.title} className="space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80">
+              <div className="flex items-center justify-between pb-2 border-b border-[#E4E7EC] dark:border-zinc-800/80">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <h3 className="text-sm font-extrabold text-zinc-200 tracking-tight">
+                  <div className="w-2 h-2 rounded-full bg-[#0B57D0]" />
+                  <h3 className="text-sm font-extrabold text-[#1A1D1F] dark:text-zinc-200 tracking-tight">
                     {week.title}
                   </h3>
                 </div>
-                <span className="text-xs text-zinc-500 font-medium tabular-nums">
+                <span className="text-xs text-[#575C61] dark:text-zinc-500 font-medium tabular-nums">
                   {week.items.length} منشورات
                 </span>
               </div>

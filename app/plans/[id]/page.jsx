@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, use, useMemo } from "react";
+import { useEffect, useState, use, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   ArrowRight,
   Loader2,
@@ -41,6 +42,7 @@ export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
   const planId = resolvedParams.id;
   const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     pingBackendHealth();
@@ -61,6 +63,28 @@ export default function PlanDetailPage({ params }) {
   // Viewer state: "diagnosis" | "calendar" | "insights" | "strategy" | "pillars"
   const [activeTab, setActiveTab] = useState("diagnosis");
   const [formatFilter, setFormatFilter] = useState("all");
+
+  const contentLoadedRef = useRef(false);
+
+  const loadPlanContent = useCallback(async () => {
+    if (contentLoadedRef.current) return;
+    contentLoadedRef.current = true;
+    setLoadingContent(true);
+    try {
+      const res = await fetch(`/api/plans/${planId}/content`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setContentData(json.data);
+      } else {
+        contentLoadedRef.current = false;
+      }
+    } catch (err) {
+      console.error("Error loading plan content:", err);
+      contentLoadedRef.current = false;
+    } finally {
+      setLoadingContent(false);
+    }
+  }, [planId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -116,22 +140,7 @@ export default function PlanDetailPage({ params }) {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [planId]);
-
-  const loadPlanContent = async () => {
-    setLoadingContent(true);
-    try {
-      const res = await fetch(`/api/plans/${planId}/content`);
-      const json = await res.json();
-      if (json.success && json.data) {
-        setContentData(json.data);
-      }
-    } catch (err) {
-      console.error("Error loading plan content:", err);
-    } finally {
-      setLoadingContent(false);
-    }
-  };
+  }, [planId, loadPlanContent]);
 
   const handleRetry = async () => {
     setIsRetrying(true);
@@ -215,8 +224,13 @@ export default function PlanDetailPage({ params }) {
   const isFailed = statusData?.plan?.status === "failed" || currentJobStatus === "failed";
   const sheetUrl = statusData?.export?.spreadsheet_url || contentData?.plan?.sheetUrl;
 
-  const planInfo = contentData?.plan || statusData?.plan || {};
-  const allContentItems = contentData?.contentItems || [];
+  const planInfo = useMemo(() => {
+    return contentData?.plan || statusData?.plan || {};
+  }, [contentData?.plan, statusData?.plan]);
+
+  const allContentItems = useMemo(() => {
+    return contentData?.contentItems || [];
+  }, [contentData?.contentItems]);
 
   // Deterministic Engines
   const confidenceScore = useMemo(() => {
@@ -243,23 +257,23 @@ export default function PlanDetailPage({ params }) {
     : allContentItems.filter((item) => item.postType?.toLowerCase() === formatFilter);
 
   return (
-    <AppShell>
+    <AppShell user={session?.user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         {loading ? (
           <div className="text-center py-24 space-y-4 max-w-md mx-auto">
             <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto" />
-            <p className="text-base font-bold text-zinc-100">جاري تحميل بيانات الخطة التسويقية...</p>
-            <p className="text-xs text-zinc-400">يرجى الانتظار بضع لحظات</p>
+            <p className="text-base font-bold text-[#1A1D1F] dark:text-zinc-100">جاري تحميل بيانات الخطة التسويقية...</p>
+            <p className="text-xs text-[#575C61] dark:text-zinc-400">يرجى الانتظار بضع لحظات</p>
           </div>
         ) : error ? (
-          <div className="p-8 rounded-2xl bg-zinc-900 border border-red-800/80 text-center space-y-4 max-w-2xl mx-auto my-12">
-            <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-            <h2 className="text-xl font-bold text-zinc-100">حدث خطأ أثناء تحميل الخطة</h2>
-            <p className="text-xs sm:text-sm text-red-300 max-w-md mx-auto">{error}</p>
+          <div className="p-8 rounded-2xl bg-red-50 border border-red-200 dark:bg-zinc-900 dark:border-red-800/80 text-center space-y-4 max-w-2xl mx-auto my-12">
+            <AlertCircle className="w-10 h-10 text-red-500 dark:text-red-400 mx-auto" />
+            <h2 className="text-xl font-bold text-[#1A1D1F] dark:text-zinc-100">حدث خطأ أثناء تحميل الخطة</h2>
+            <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 max-w-md mx-auto">{error}</p>
             <div className="pt-2">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-bold transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-[#E4E7EC] hover:bg-[#F0F4F8] text-[#1A1D1F] dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 text-xs font-bold transition-colors shadow-xs"
               >
                 العودة إلى لوحة التحكم
               </Link>
@@ -268,11 +282,11 @@ export default function PlanDetailPage({ params }) {
         ) : (
           <div className="space-y-8">
             {/* Title & Metadata Banner */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-zinc-800/80 text-right">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-[#E4E7EC] dark:border-zinc-800/80 text-right">
               <div>
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-100">{planInfo.productName || planInfo.product_name}</h1>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-blue-400 font-bold">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1D1F] dark:text-zinc-100">{planInfo.productName || planInfo.product_name}</h1>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#0B57D0] dark:bg-zinc-900 dark:border-zinc-800 dark:text-blue-400 font-bold">
                     {planInfo.productCategory || planInfo.product_category}
                   </span>
 
@@ -281,10 +295,10 @@ export default function PlanDetailPage({ params }) {
                     <span
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${
                         confidenceScore.score >= 8
-                          ? "bg-emerald-950/70 border-emerald-800 text-emerald-300"
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/70 dark:border-emerald-800 dark:text-emerald-300"
                           : confidenceScore.score >= 6
-                          ? "bg-blue-950/70 border-blue-800 text-blue-300"
-                          : "bg-amber-950/70 border-amber-800 text-amber-300"
+                          ? "bg-blue-50 border-blue-200 text-[#0B57D0] dark:bg-blue-950/70 dark:border-blue-800 dark:text-blue-300"
+                          : "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/70 dark:border-amber-800 dark:text-amber-300"
                       }`}
                       title={confidenceScore.grade}
                     >
@@ -293,8 +307,8 @@ export default function PlanDetailPage({ params }) {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-zinc-400 mt-1.5">
-                  الهدف التسويقي: <strong className="text-zinc-200">{(planInfo.marketingObjective || planInfo.marketing_objective)?.replace(/_/g, " ")}</strong>
+                <p className="text-xs text-[#575C61] dark:text-zinc-400 mt-1.5">
+                  الهدف التسويقي: <strong className="text-[#1A1D1F] dark:text-zinc-200">{(planInfo.marketingObjective || planInfo.marketing_objective)?.replace(/_/g, " ")}</strong>
                 </p>
               </div>
 
@@ -302,7 +316,7 @@ export default function PlanDetailPage({ params }) {
               <div className="flex flex-wrap items-center gap-3">
                 {isCompleted ? (
                   <>
-                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-bold">
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800/60 dark:text-emerald-300 text-xs font-bold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>الخطة مكتملة</span>
                     </span>
@@ -310,7 +324,7 @@ export default function PlanDetailPage({ params }) {
                     <button
                       type="button"
                       onClick={() => setIsShareModalOpen(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0B57D0] hover:bg-[#0842a0] text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
                     >
                       <Share2 className="w-4 h-4" />
                       <span>مشاركة الخطة مع العميل</span>
@@ -321,7 +335,7 @@ export default function PlanDetailPage({ params }) {
                         href={sheetUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-950 font-extrabold text-xs transition-all shadow-sm"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition-all shadow-sm"
                       >
                         <FileSpreadsheet className="w-4 h-4" />
                         <span>فتح Google Sheet</span>
@@ -330,12 +344,12 @@ export default function PlanDetailPage({ params }) {
                     )}
                   </>
                 ) : isFailed ? (
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-950/60 border border-red-800/60 text-red-300 text-xs font-bold">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/60 dark:border-red-800/60 dark:text-red-300 text-xs font-bold">
                     <AlertCircle className="w-4 h-4" />
                     <span>تعثرت عملية التوليد</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-950/60 border border-blue-800/60 text-blue-300 text-xs font-bold animate-pulse">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0B57D0] dark:bg-blue-950/60 dark:border-blue-800/60 dark:text-blue-300 text-xs font-bold animate-pulse">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>جاري التوليد بواسطة AI...</span>
                   </span>
@@ -350,12 +364,12 @@ export default function PlanDetailPage({ params }) {
 
             {/* Failure Box */}
             {isFailed && (
-              <div className="p-6 rounded-2xl bg-zinc-900 border border-red-800/80 space-y-4 text-right">
-                <div className="flex items-center gap-2 text-red-300 font-bold text-base">
-                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+              <div className="p-6 rounded-2xl bg-red-50/70 border border-red-200 dark:bg-zinc-900 dark:border-red-800/80 space-y-4 text-right">
+                <div className="flex items-center gap-2 text-red-700 dark:text-red-300 font-bold text-base">
+                  <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
                   <span>واجه الذكاء الاصطناعي صعوبة أثناء المعالجة</span>
                 </div>
-                <p className="text-xs text-zinc-300 leading-relaxed">
+                <p className="text-xs text-[#575C61] dark:text-zinc-300 leading-relaxed">
                   {statusData?.job?.error_message ||
                     "تعثر أحد مسارات المعالجة. يمكنك إعادة المحاولة وسيقوم النظام باستئناف الخطوات فوراً."}
                 </p>
@@ -363,7 +377,7 @@ export default function PlanDetailPage({ params }) {
                   <button
                     onClick={handleRetry}
                     disabled={isRetrying}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
                   >
                     {isRetrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                     <span>إعادة محاولة التوليد الآن</span>
@@ -374,11 +388,11 @@ export default function PlanDetailPage({ params }) {
 
             {/* In-Progress Live Timeline */}
             {!isCompleted && !isFailed && (
-              <div className="p-6 sm:p-8 rounded-2xl bg-zinc-900 border border-zinc-800/80 shadow-sm space-y-6 text-right max-w-3xl mx-auto">
-                <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">مراحل المحرك الذكي</h3>
+              <div className="p-6 sm:p-8 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs space-y-6 text-right max-w-3xl mx-auto">
+                <div className="flex items-center justify-between pb-4 border-b border-[#E4E7EC] dark:border-zinc-800">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-400">مراحل المحرك الذكي</h3>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-blue-400 flex items-center gap-1.5 font-bold">
+                    <span className="text-xs text-[#0B57D0] dark:text-blue-400 flex items-center gap-1.5 font-bold">
                       <Clock className="w-3.5 h-3.5 animate-spin" />
                       <span>{statusData?.job?.current_step || "جاري التنفيذ في الخلفية..."}</span>
                     </span>
@@ -390,7 +404,7 @@ export default function PlanDetailPage({ params }) {
                       }}
                       disabled={isCancelling}
                       title="إلغاء عملية التوليد"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-red-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E4E7EC] hover:bg-red-50 hover:border-red-200 text-red-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-red-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
                     >
                       {isCancelling ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -411,15 +425,15 @@ export default function PlanDetailPage({ params }) {
                       <div key={step.id} className="flex items-start gap-4">
                         <div className="shrink-0 mt-0.5">
                           {isDone ? (
-                            <div className="w-8 h-8 rounded-full bg-emerald-950/80 border border-emerald-600 text-emerald-400 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-600 dark:bg-emerald-950/80 dark:border-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                               <CheckCircle2 className="w-4 h-4" />
                             </div>
                           ) : isActive ? (
-                            <div className="w-8 h-8 rounded-full bg-blue-950/80 border border-blue-500 text-blue-400 flex items-center justify-center animate-pulse">
+                            <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-300 text-[#0B57D0] dark:bg-blue-950/80 dark:border-blue-500 dark:text-blue-400 flex items-center justify-center animate-pulse">
                               <Loader2 className="w-4 h-4 animate-spin" />
                             </div>
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-zinc-950 border border-zinc-800 text-zinc-600 flex items-center justify-center text-xs font-bold">
+                            <div className="w-8 h-8 rounded-full bg-white border border-[#E4E7EC] text-[#575C61] dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-600 flex items-center justify-center text-xs font-bold">
                               {idx + 1}
                             </div>
                           )}
@@ -429,13 +443,13 @@ export default function PlanDetailPage({ params }) {
                           <div className="flex items-center gap-2">
                             <h4
                               className={`text-sm font-bold ${
-                                isDone ? "text-zinc-200" : isActive ? "text-blue-400 font-extrabold" : "text-zinc-500"
+                                isDone ? "text-[#1A1D1F] dark:text-zinc-200" : isActive ? "text-[#0B57D0] dark:text-blue-400 font-extrabold" : "text-[#575C61] dark:text-zinc-500"
                               }`}
                             >
                               {step.label}
                             </h4>
                           </div>
-                          <p className="text-xs text-zinc-400 leading-relaxed">{step.description}</p>
+                          <p className="text-xs text-[#575C61] dark:text-zinc-400 leading-relaxed">{step.description}</p>
                         </div>
                       </div>
                     );
@@ -448,14 +462,14 @@ export default function PlanDetailPage({ params }) {
             {isCompleted && (
               <div className="space-y-6">
                 {/* Navigation Tabs */}
-                <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3">
+                <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E7EC] dark:border-zinc-800 pb-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab("diagnosis")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "diagnosis"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                        ? "bg-[#0B57D0] text-white shadow-sm"
+                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Sparkles className="w-4 h-4 text-amber-400" />
@@ -467,8 +481,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("calendar")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "calendar"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                        ? "bg-[#0B57D0] text-white shadow-sm"
+                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Calendar className="w-4 h-4" />
@@ -480,8 +494,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("insights")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "insights"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                        ? "bg-[#0B57D0] text-white shadow-sm"
+                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Compass className="w-4 h-4" />
@@ -493,8 +507,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("strategy")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "strategy"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                        ? "bg-[#0B57D0] text-white shadow-sm"
+                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Target className="w-4 h-4" />
@@ -506,8 +520,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("pillars")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "pillars"
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                        ? "bg-[#0B57D0] text-white shadow-sm"
+                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <span>محاور المحتوى</span>

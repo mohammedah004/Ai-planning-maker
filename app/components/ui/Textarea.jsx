@@ -23,13 +23,13 @@ export default function Textarea({
         {label && (
           <label
             htmlFor={id}
-            className="block text-xs font-bold uppercase tracking-wider text-zinc-300"
+            className="block text-xs font-bold uppercase tracking-wider text-[#1A1D1F] dark:text-zinc-300"
           >
-            {label} {required && <span className="text-red-400 font-bold">*</span>}
+            {label} {required && <span className="text-red-500 font-bold">*</span>}
           </label>
         )}
         {maxLength && (
-          <span className="text-[11px] text-zinc-500 tabular-nums">
+          <span className="text-[11px] text-[#575C61] dark:text-zinc-500 tabular-nums">
             {currentLength} / {maxLength}
           </span>
         )}
@@ -44,20 +44,20 @@ export default function Textarea({
         disabled={disabled}
         placeholder={placeholder}
         className={`
-          w-full px-4 py-3 rounded-xl bg-[#09090b] text-sm text-zinc-100 placeholder-zinc-500
+          w-full px-4 py-3 rounded-xl bg-white dark:bg-[#09090b] text-sm text-[#1A1D1F] dark:text-zinc-100 placeholder-[#575C61] dark:placeholder-zinc-500
           border transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed leading-relaxed
           ${
             error
               ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
-              : "border-zinc-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40"
+              : "border-[#E4E7EC] dark:border-zinc-800 focus:border-[#0B57D0] focus:ring-1 focus:ring-[#0B57D0]/30 dark:focus:border-blue-500"
           }
           ${className}
         `.trim()}
         {...props}
       />
 
-      {error && <p className="text-xs text-red-400 font-bold">{error}</p>}
-      {!error && helperText && <p className="text-[11px] text-zinc-500">{helperText}</p>}
+      {error && <p className="text-xs text-red-500 font-bold">{error}</p>}
+      {!error && helperText && <p className="text-[11px] text-[#575C61] dark:text-zinc-500">{helperText}</p>}
     </div>
   );
 }
