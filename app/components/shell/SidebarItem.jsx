@@ -26,8 +26,8 @@ export default function SidebarItem({
         group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 select-none
         ${
           isActive
-            ? "bg-blue-50 text-[#0B57D0] font-bold border border-blue-200/80 shadow-xs dark:bg-zinc-800/90 dark:text-zinc-100 dark:border-zinc-700/70 dark:shadow-sm"
-            : "text-[#575C61] hover:text-[#1A1D1F] hover:bg-[#F0F4F8] border border-transparent dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850/60"
+            ? "bg-slate-100 text-slate-900 font-bold border border-slate-200/80 shadow-xs dark:bg-zinc-800/90 dark:text-zinc-100 dark:border-zinc-700/70 dark:shadow-sm"
+            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border border-transparent dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-850/60"
         }
         ${className}
       `.trim()}
@@ -36,7 +36,7 @@ export default function SidebarItem({
         {Icon && (
           <Icon
             className={`w-4 h-4 shrink-0 transition-colors ${
-              isActive ? "text-[#0B57D0] dark:text-blue-400" : "text-[#575C61] group-hover:text-[#1A1D1F] dark:text-zinc-500 dark:group-hover:text-zinc-300"
+              isActive ? "text-slate-900 dark:text-zinc-100" : "text-slate-500 group-hover:text-slate-900 dark:text-zinc-500 dark:group-hover:text-zinc-300"
             }`}
           />
         )}
@@ -49,8 +49,8 @@ export default function SidebarItem({
             px-2 py-0.5 text-[11px] rounded-full border tabular-nums shrink-0
             ${
               isActive
-                ? "bg-blue-100 text-[#0B57D0] border-blue-200 font-bold dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800/80"
-                : "bg-[#E4E7EC] text-[#575C61] border-[#E4E7EC] group-hover:text-[#1A1D1F] dark:bg-zinc-900 dark:text-zinc-500 dark:border-zinc-800 dark:group-hover:text-zinc-400"
+                ? "bg-slate-200 text-slate-800 border-slate-300 font-bold dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-600"
+                : "bg-slate-100 text-slate-500 border-slate-200 group-hover:text-slate-700 dark:bg-zinc-900 dark:text-zinc-500 dark:border-zinc-800"
             }
           `}
         >

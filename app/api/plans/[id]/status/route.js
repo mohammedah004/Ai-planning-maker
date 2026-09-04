@@ -94,6 +94,8 @@ export async function GET(request, { params }) {
           spreadsheet_id,
           spreadsheet_url,
           status,
+          target_version,
+          exported_version,
           error_message
         )
       `)
@@ -123,6 +125,7 @@ export async function GET(request, { params }) {
           marketing_objective: plan.marketing_objective,
           shareToken: plan.share_token || null,
           status: plan.status,
+          contentVersion: plan.content_version || 1,
           hasStrategy: Boolean(plan.strategy),
           hasPillars: Boolean(plan.content_pillars),
         },
@@ -140,6 +143,8 @@ export async function GET(request, { params }) {
           ? {
               spreadsheet_url: sheetExport.spreadsheet_url,
               status: sheetExport.status,
+              target_version: sheetExport.target_version,
+              exported_version: sheetExport.exported_version,
               error_message: sheetExport.error_message,
             }
           : null,

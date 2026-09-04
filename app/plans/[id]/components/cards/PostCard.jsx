@@ -18,7 +18,7 @@ export default function PostCard({
   return (
     <div
       className={`
-        group relative flex flex-col justify-between rounded-2xl bg-[#F8F9FB] dark:bg-[#131316] border border-[#E4E7EC] dark:border-zinc-800/90 hover:border-emerald-500/60 hover:shadow-md transition-all duration-200 text-right overflow-hidden shadow-xs
+        group relative flex flex-col justify-between rounded-2xl bg-white dark:bg-[#131316] border border-slate-200/80 dark:border-zinc-800/90 hover:border-emerald-500/60 hover:shadow-md transition-all duration-200 text-right overflow-hidden shadow-xs
         ${isMini ? "p-3.5 space-y-2.5 min-w-[220px]" : "p-5 space-y-4"}
         ${className}
       `.trim()}
@@ -26,10 +26,10 @@ export default function PostCard({
       {/* Top Header: Day Number + Post Type Indicator */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded-lg bg-white dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 text-[#1A1D1F] dark:text-zinc-200 text-xs font-black tabular-nums shadow-xs">
+          <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-200 text-xs font-black tabular-nums shadow-xs">
             اليوم {dayNumber}
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800/60 dark:text-emerald-300 text-[11px] font-bold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50/70 border border-emerald-200/70 text-emerald-800 dark:bg-emerald-950/60 dark:border-emerald-800/60 dark:text-emerald-300 text-[11px] font-bold">
             <ImageIcon className="w-3 h-3" />
             <span>منشور ثابت</span>
           </span>

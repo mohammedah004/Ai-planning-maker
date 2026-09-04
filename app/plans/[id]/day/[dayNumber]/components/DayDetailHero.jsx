@@ -33,6 +33,12 @@ export default function DayDetailHero({
   planId,
   planTitle = "",
   onRegenerate = null,
+  onToggleEdit = null,
+  onOpenScopedAI = null,
+  onOpenExternalAI = null,
+  onUndo = null,
+  isEditing = false,
+  canUndo = false,
   readOnly = false,
   className = "",
 }) {
@@ -48,8 +54,8 @@ export default function DayDetailHero({
 
   return (
     <div className={`space-y-6 text-right ${className}`}>
-      {/* Back to Plan Navigation Header */}
-      <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
+      {/* Back to Plan Navigation Header & Action Dock */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
         <Link
           href={`/plans/${planId}`}
           className="inline-flex items-center gap-2 text-xs sm:text-sm text-[#575C61] hover:text-[#1A1D1F] dark:text-zinc-400 dark:hover:text-zinc-100 font-bold transition-colors group"
@@ -58,15 +64,64 @@ export default function DayDetailHero({
           <span>العودة إلى مساحة الخطة {planTitle ? `(${planTitle})` : ""}</span>
         </Link>
 
-        {!readOnly && onRegenerate && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onRegenerate(item)}
-            startIcon={RefreshCw}
-          >
-            إعادة صياغة المنشور بـ AI
-          </Button>
+        {!readOnly && (
+          <div className="flex flex-wrap items-center gap-2">
+            {canUndo && onUndo && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onUndo}
+                className="text-xs"
+              >
+                تراجع عن آخر تعديل
+              </Button>
+            )}
+
+            {onToggleEdit && (
+              <Button
+                variant={isEditing ? "primary" : "secondary"}
+                size="sm"
+                onClick={onToggleEdit}
+                className="text-xs font-bold"
+              >
+                {isEditing ? "إلغاء التحرير اليدوي" : "تحرير يدوي"}
+              </Button>
+            )}
+
+            {onOpenScopedAI && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenScopedAI}
+                className="text-xs text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60 font-bold"
+              >
+                تعديل ذكي (Scoped AI)
+              </Button>
+            )}
+
+            {onOpenExternalAI && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenExternalAI}
+                className="text-xs text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60 font-bold"
+              >
+                تحرير خارجي (External AI)
+              </Button>
+            )}
+
+            {onRegenerate && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onRegenerate(item)}
+                startIcon={RefreshCw}
+                className="text-xs"
+              >
+                إعادة توليد بالكامل
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

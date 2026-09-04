@@ -52,13 +52,16 @@ export async function GET(request, { params }) {
         strategy,
         content_pillars,
         objective_distribution,
+        content_version,
         share_token,
         status,
         created_at,
         updated_at,
         google_sheet_exports (
           spreadsheet_url,
-          status
+          status,
+          target_version,
+          exported_version
         )
       `)
       .eq("id", planId)
@@ -149,7 +152,11 @@ export async function GET(request, { params }) {
       contentPillar: item.content_pillar,
       designReference: item.design_reference,
       cta: item.cta,
+      revision: item.revision || 1,
+      editSource: item.edit_source || "ai_generated",
+      previousState: item.previous_state || null,
       createdAt: item.created_at,
+      updatedAt: item.updated_at,
     }));
 
     return NextResponse.json({
@@ -167,10 +174,14 @@ export async function GET(request, { params }) {
           brandTone: plan.brand_tone,
           websiteUrl: plan.website_url,
           additionalContext: plan.additional_context,
+          contentVersion: plan.content_version || 1,
           shareToken: plan.share_token || null,
           status: plan.status,
           createdAt: plan.created_at,
           sheetUrl: sheetExport?.spreadsheet_url || null,
+          sheetStatus: sheetExport?.status || null,
+          sheetTargetVersion: sheetExport?.target_version ?? null,
+          sheetExportedVersion: sheetExport?.exported_version ?? null,
         },
         strategy: parsedStrategy,
         pillars: Array.isArray(parsedPillars) ? parsedPillars : [],

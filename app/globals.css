@@ -35,22 +35,22 @@
 
 /* Light mode token overrides — applied when .dark class is absent from <html> */
 html:not(.dark) {
-  --surface-canvas: #ffffff;
+  --surface-canvas: #f8fafc;
   --surface-sidebar: #ffffff;
-  --surface-card: #f8f9fb;
-  --surface-card-hover: #f0f4f8;
+  --surface-card: #ffffff;
+  --surface-card-hover: #f8fafc;
   --surface-elevated: #ffffff;
-  --surface-inset: #f8f9fb;
+  --surface-inset: #f1f5f9;
 
   /* Borders */
-  --border-subtle: #e4e7ec;
-  --border-card: #e4e7ec;
-  --border-highlight: #d0d5dd;
+  --border-subtle: #e2e8f0;
+  --border-card: rgba(226, 232, 240, 0.8);
+  --border-highlight: #cbd5e1;
 
   /* Typography */
-  --text-primary: #1a1d1f;
-  --text-secondary: #575c61;
-  --text-muted: #71767b;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
 }
 
 @theme inline {

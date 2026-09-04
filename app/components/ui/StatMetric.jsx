@@ -11,19 +11,19 @@ export default function StatMetric({
   className = "",
 }) {
   const valueColors = {
-    default: "text-[#1A1D1F] dark:text-zinc-100",
-    emerald: "text-[#1A1D1F] dark:text-emerald-400",
-    blue: "text-[#1A1D1F] dark:text-blue-400",
-    purple: "text-[#1A1D1F] dark:text-purple-400",
-    amber: "text-[#1A1D1F] dark:text-amber-400",
+    default: "text-slate-900 dark:text-zinc-100",
+    emerald: "text-slate-900 dark:text-emerald-400",
+    blue: "text-slate-900 dark:text-blue-400",
+    purple: "text-slate-900 dark:text-purple-400",
+    amber: "text-slate-900 dark:text-amber-400",
   };
 
   const iconBgColors = {
-    default: "bg-zinc-100 text-[#575C61] border-zinc-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700/60",
-    emerald: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800/60",
-    blue: "bg-blue-50 text-[#0B57D0] border-blue-200 dark:bg-blue-600/10 dark:text-blue-400 dark:border-blue-500/20",
-    purple: "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950/60 dark:text-purple-400 dark:border-purple-800/60",
-    amber: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800/60",
+    default: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700/60",
+    emerald: "bg-emerald-50/80 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800/60",
+    blue: "bg-blue-50/80 text-blue-700 border-blue-200/80 dark:bg-blue-600/10 dark:text-blue-400 dark:border-blue-500/20",
+    purple: "bg-violet-50/80 text-violet-700 border-violet-200/80 dark:bg-purple-950/60 dark:text-purple-400 dark:border-purple-800/60",
+    amber: "bg-amber-50/80 text-amber-800 border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800/60",
   };
 
   return (

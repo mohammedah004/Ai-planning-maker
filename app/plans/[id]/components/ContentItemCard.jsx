@@ -25,13 +25,13 @@ const formatPostType = (type) => {
     case "reel":
       return { label: "ريلز (Reel)", icon: Film, bg: "bg-purple-50 dark:bg-purple-950/40", border: "border-purple-200 dark:border-purple-800/40", text: "text-purple-700 dark:text-purple-300" };
     case "carousel":
-      return { label: "كاروسيل (Carousel)", icon: Layers, bg: "bg-blue-50 dark:bg-blue-950/40", border: "border-blue-200 dark:border-blue-800/40", text: "text-[#0B57D0] dark:text-blue-300" };
+      return { label: "كاروسيل (Carousel)", icon: Layers, bg: "bg-blue-50 dark:bg-blue-950/40", border: "border-blue-200 dark:border-blue-800/40", text: "text-blue-700 dark:text-blue-300" };
     case "static_post":
       return { label: "منشور ثابت (Post)", icon: ImageIcon, bg: "bg-emerald-50 dark:bg-emerald-950/40", border: "border-emerald-200 dark:border-emerald-800/40", text: "text-emerald-700 dark:text-emerald-300" };
     case "story":
-      return { label: "ستوري (Story)", icon: Zap, bg: "bg-amber-50 dark:bg-amber-950/40", border: "border-amber-200 dark:border-amber-800/40", text: "text-amber-700 dark:text-amber-300" };
+      return { label: "ستوري (Story)", icon: Zap, bg: "bg-amber-50 dark:bg-amber-950/40", border: "border-amber-200 dark:border-amber-800/40", text: "text-amber-800 dark:text-amber-300" };
     default:
-      return { label: type || "منشور", icon: Layers, bg: "bg-[#F8F9FB] dark:bg-zinc-800/60", border: "border-[#E4E7EC] dark:border-zinc-700/60", text: "text-[#575C61] dark:text-zinc-300" };
+      return { label: type || "منشور", icon: Layers, bg: "bg-slate-100 dark:bg-zinc-800/60", border: "border-slate-200 dark:border-zinc-700/60", text: "text-slate-700 dark:text-zinc-300" };
   }
 };
 
@@ -81,17 +81,17 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
     <>
       <div
         id={`day-${item.dayNumber}`}
-        className={`p-6 sm:p-7 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border transition-all text-right space-y-6 shadow-xs ${
+        className={`p-6 sm:p-7 rounded-2xl bg-white dark:bg-zinc-900 border transition-all text-right space-y-6 shadow-xs ${
           recentlyUpdated
             ? "border-emerald-500 ring-1 ring-emerald-500/40 bg-emerald-50/30 dark:bg-zinc-900"
-            : "border-[#E4E7EC] dark:border-zinc-800/80 hover:border-zinc-400 dark:hover:border-zinc-700"
+            : "border-slate-200/80 dark:border-zinc-800/80 hover:border-slate-300 dark:hover:border-zinc-700"
         }`}
       >
         {/* 1. Header Meta Bar: Day badge, Type badge, Objective, Pillar, Quick Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E4E7EC] dark:border-zinc-800/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80 dark:border-zinc-800/80">
           <div className="flex flex-wrap items-center gap-2">
             {/* Day Badge */}
-            <span className="px-3 py-1 rounded-xl bg-[#0B57D0] text-white dark:bg-zinc-100 dark:text-zinc-950 font-extrabold text-xs shadow-xs">
+            <span className="px-3 py-1 rounded-xl bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-950 font-extrabold text-xs shadow-xs">
               اليوم {item.dayNumber}
             </span>
 
@@ -102,7 +102,7 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
             </span>
 
             {/* Objective Badge */}
-            <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-950 border border-[#E4E7EC] dark:border-zinc-800 text-[#1A1D1F] dark:text-zinc-300 text-xs font-medium shadow-xs">
+            <span className="px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 text-xs font-medium shadow-xs">
               {formatObjective(item.contentObjective)}
             </span>
 
@@ -118,7 +118,7 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
           <div className="flex items-center gap-2 self-start sm:self-auto">
             {/* Pillar Tag */}
             {item.contentPillar && (
-              <div className="flex items-center gap-1.5 text-xs text-[#0B57D0] dark:text-blue-400 font-semibold bg-white dark:bg-zinc-950 border border-[#E4E7EC] dark:border-zinc-800 px-3 py-1 rounded-xl shadow-xs">
+              <div className="flex items-center gap-1.5 text-xs text-blue-700 dark:text-blue-400 font-semibold bg-slate-50 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 px-3 py-1 rounded-xl shadow-xs">
                 <Target className="w-3 h-3" />
                 <span className="truncate max-w-[180px]">{item.contentPillar}</span>
               </div>
@@ -129,7 +129,7 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
               <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[#0B57D0] dark:bg-blue-600/10 dark:hover:bg-blue-600/20 dark:border-blue-500/20 dark:text-blue-400 text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-violet-50/80 hover:bg-violet-100/80 border border-violet-200 text-violet-700 dark:bg-violet-950/40 dark:hover:bg-violet-900/40 dark:border-violet-800/60 dark:text-violet-300 text-xs font-bold transition-colors cursor-pointer shadow-xs"
                 title="إعادة صياغة المنشور بذكاء"
               >
                 <RefreshCw className="w-3 h-3" />
@@ -142,13 +142,13 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
         {/* 2. Main Caption Body */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
               نص المنشور (الكابشن)
             </span>
             <button
               type="button"
               onClick={handleCopyCaption}
-              className="inline-flex items-center gap-1 text-xs text-[#575C61] hover:text-[#1A1D1F] px-2.5 py-1 rounded-lg hover:bg-[#F0F4F8] dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-lg hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               title="نسخ الكابشن"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -158,49 +158,49 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
             </button>
           </div>
 
-          <div className="p-4 sm:p-5 rounded-xl bg-white dark:bg-zinc-950 border border-[#E4E7EC] dark:border-zinc-800/80 text-sm text-[#1A1D1F] dark:text-zinc-100 leading-relaxed whitespace-pre-line font-normal shadow-xs">
+          <div className="p-4 sm:p-5 rounded-xl bg-slate-50/60 dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800/80 text-sm text-slate-900 dark:text-zinc-100 leading-relaxed whitespace-pre-line font-normal shadow-xs">
             {item.caption}
           </div>
         </div>
 
         {/* 3. Designer Drawer: Design Copy & Visual Direction */}
         {(hasDesignCopy || item.designReference || item.cta) && (
-          <div className="p-4 sm:p-5 rounded-xl bg-white dark:bg-zinc-950/60 border border-[#E4E7EC] dark:border-zinc-800 space-y-4 shadow-xs">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#1A1D1F] dark:text-zinc-300">
-              <Palette className="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
+          <div className="p-4 sm:p-5 rounded-xl bg-slate-50/50 dark:bg-zinc-950/60 border border-slate-200/80 dark:border-zinc-800 space-y-4 shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-zinc-300">
+              <Palette className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>توجيهات التصميم والتنفيذ البصري (Design Copy)</span>
             </div>
 
             {hasDesignCopy && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 {designCopy.headline && (
-                  <div className="p-3 rounded-lg bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 shadow-xs">
-                    <span className="block text-[10px] font-bold text-[#575C61] dark:text-zinc-400 mb-1 uppercase tracking-wider">
+                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+                    <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
                       العنوان الرئيسي (Headline)
                     </span>
-                    <span className="font-bold text-[#1A1D1F] dark:text-zinc-100 text-xs sm:text-sm leading-snug">
+                    <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm leading-snug">
                       {designCopy.headline}
                     </span>
                   </div>
                 )}
 
                 {designCopy.subtext && (
-                  <div className="p-3 rounded-lg bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 shadow-xs">
-                    <span className="block text-[10px] font-bold text-[#575C61] dark:text-zinc-400 mb-1 uppercase tracking-wider">
+                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+                    <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
                       النص الفرعي (Subtext)
                     </span>
-                    <span className="text-[#575C61] dark:text-zinc-300 text-xs leading-snug">
+                    <span className="text-slate-600 dark:text-zinc-300 text-xs leading-snug">
                       {designCopy.subtext}
                     </span>
                   </div>
                 )}
 
                 {designCopy.cta && (
-                  <div className="p-3 rounded-lg bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 shadow-xs">
-                    <span className="block text-[10px] font-bold text-[#575C61] dark:text-zinc-400 mb-1 uppercase tracking-wider">
+                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+                    <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
                       زر الإجراء (Button CTA)
                     </span>
-                    <span className="inline-block px-2.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-[#0B57D0] dark:bg-blue-950/60 dark:border-blue-800/60 dark:text-blue-300 font-bold text-xs">
+                    <span className="inline-block px-2.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-950/60 dark:border-blue-800/60 dark:text-blue-300 font-bold text-xs">
                       {designCopy.cta}
                     </span>
                   </div>
@@ -210,24 +210,24 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
               {item.designReference && (
-                <div className="p-3 rounded-lg bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 space-y-1 shadow-xs">
+                <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 space-y-1 shadow-xs">
                   <span className="flex items-center gap-1.5 font-bold text-purple-700 dark:text-purple-400 text-[11px]">
                     <Film className="w-3 h-3" />
                     <span>الفكرة الإخراجية والبصرية</span>
                   </span>
-                  <p className="text-[#575C61] dark:text-zinc-300 text-xs leading-relaxed">
+                  <p className="text-slate-600 dark:text-zinc-300 text-xs leading-relaxed">
                     {item.designReference}
                   </p>
                 </div>
               )}
 
               {item.cta && (
-                <div className="p-3 rounded-lg bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 space-y-1 shadow-xs">
+                <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 space-y-1 shadow-xs">
                   <span className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">
                     <Megaphone className="w-3 h-3" />
                     <span>الدعوة لاتخاذ إجراء (Post CTA)</span>
                   </span>
-                  <p className="text-[#575C61] dark:text-zinc-300 text-xs font-medium leading-relaxed">
+                  <p className="text-slate-600 dark:text-zinc-300 text-xs font-medium leading-relaxed">
                     {item.cta}
                   </p>
                 </div>
@@ -237,51 +237,51 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
         )}
 
         {/* 4. Bottom Disclosure: "Why This Post?" Accordion */}
-        <div className="pt-1 border-t border-[#E4E7EC] dark:border-zinc-800/80">
+        <div className="pt-1 border-t border-slate-200/80 dark:border-zinc-800/80">
           <button
             type="button"
             onClick={() => setShowWhyThisPost((prev) => !prev)}
-            className="w-full flex items-center justify-between p-3 rounded-xl bg-white hover:bg-[#F0F4F8] border border-[#E4E7EC] text-[#1A1D1F] dark:bg-zinc-950/60 dark:hover:bg-zinc-800/60 dark:border-zinc-800 dark:text-zinc-300 text-xs font-bold transition-all cursor-pointer shadow-xs"
+            className="w-full flex items-center justify-between p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-900 dark:bg-zinc-950/60 dark:hover:bg-zinc-800/60 dark:border-zinc-800 dark:text-zinc-300 text-xs font-bold transition-all cursor-pointer shadow-xs"
           >
             <div className="flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
               <span>لماذا هذا المنشور تحديداً؟ (التحليل الاستراتيجي)</span>
             </div>
 
-            <div className="flex items-center gap-1 text-[11px] text-[#575C61] dark:text-zinc-400">
+            <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-zinc-400">
               <span>{showWhyThisPost ? "إخفاء التحليل" : "عرض التحليل"}</span>
               {showWhyThisPost ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </div>
           </button>
 
           {showWhyThisPost && (
-            <div className="mt-3 p-4 rounded-xl bg-white dark:bg-zinc-950 border border-[#E4E7EC] dark:border-zinc-800 space-y-3 text-xs shadow-xs">
+            <div className="mt-3 p-4 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200/80 dark:border-zinc-800 space-y-3 text-xs shadow-xs">
               <div className="space-y-1">
-                <span className="font-bold text-[#0B57D0] dark:text-blue-400 flex items-center gap-1.5 text-xs">
+                <span className="font-bold text-blue-700 dark:text-blue-400 flex items-center gap-1.5 text-xs">
                   <Target className="w-3.5 h-3.5" />
                   <span>الهدف التسويقي في القمع:</span>
                 </span>
-                <p className="text-[#575C61] dark:text-zinc-300 text-xs leading-relaxed pr-5">
+                <p className="text-slate-600 dark:text-zinc-300 text-xs leading-relaxed pr-5">
                   {whyExplanation.objectivePurpose}
                 </p>
               </div>
 
-              <div className="space-y-1 pt-2 border-t border-[#E4E7EC] dark:border-zinc-900">
+              <div className="space-y-1 pt-2 border-t border-slate-200/80 dark:border-zinc-900">
                 <span className="font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5 text-xs">
                   <PostIcon className="w-3.5 h-3.5" />
                   <span>سبب اختيار قالب ({postTypeInfo.label}):</span>
                 </span>
-                <p className="text-[#575C61] dark:text-zinc-300 text-xs leading-relaxed pr-5">
+                <p className="text-slate-600 dark:text-zinc-300 text-xs leading-relaxed pr-5">
                   {whyExplanation.formatFit}
                 </p>
               </div>
 
-              <div className="space-y-1 pt-2 border-t border-[#E4E7EC] dark:border-zinc-900">
+              <div className="space-y-1 pt-2 border-t border-slate-200/80 dark:border-zinc-900">
                 <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 text-xs">
                   <Compass className="w-3.5 h-3.5" />
                   <span>الشريحة المستهدفة ونقطة التأثير:</span>
                 </span>
-                <p className="text-[#575C61] dark:text-zinc-300 text-xs leading-relaxed pr-5">
+                <p className="text-slate-600 dark:text-zinc-300 text-xs leading-relaxed pr-5">
                   {whyExplanation.audienceContext}
                 </p>
               </div>

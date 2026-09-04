@@ -142,6 +142,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
     try {
       const hasSeen = localStorage.getItem("hasSeenVoiceOnboarding");
       if (!hasSeen) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setShowOnboarding(true);
       }
     } catch (_) {}

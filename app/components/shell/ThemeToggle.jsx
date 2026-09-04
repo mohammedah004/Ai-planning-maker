@@ -44,7 +44,7 @@ export default function ThemeToggle() {
       onClick={handleCycle}
       title={`المظهر: ${current.label} — انقر للتغيير`}
       aria-label={`تبديل المظهر، الحالي: ${current.label}`}
-      className="p-2 rounded-xl text-[#575C61] hover:text-[#1A1D1F] hover:bg-[#F0F4F8] dark:text-zinc-500 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+      className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-500 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
     >
       <Icon className="w-4 h-4" />
     </button>

@@ -21,7 +21,7 @@ export default function Sidebar({ user = null, brandCount = null, className = ""
     <aside
       aria-label="التنقل الرئيسي"
       className={`
-        w-64 lg:w-72 h-screen sticky top-0 flex flex-col justify-between p-5 border-l border-[#E4E7EC] dark:border-zinc-800/80 bg-white dark:bg-[#0c0c0f] shrink-0 text-right select-none
+        w-64 lg:w-72 h-screen sticky top-0 flex flex-col justify-between p-5 border-l border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#0c0c0f] shrink-0 text-right select-none shadow-xs
         ${className}
       `.trim()}
     >
@@ -34,7 +34,7 @@ export default function Sidebar({ user = null, brandCount = null, className = ""
 
         {/* Primary Navigation List */}
         <nav className="space-y-1.5" aria-label="أقسام مساحة العمل">
-          <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-500">
+          <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
             {t("common.nav.workspace")}
           </div>
 
@@ -59,7 +59,7 @@ export default function Sidebar({ user = null, brandCount = null, className = ""
             badge={brandCount}
           />
 
-          <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-500">
+          <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
             {t("common.nav.general")}
           </div>
 
@@ -72,19 +72,19 @@ export default function Sidebar({ user = null, brandCount = null, className = ""
         </nav>
 
         {/* Strategic Intelligence Badge / Value Anchor */}
-        <div className="p-4 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900/40 border border-[#E4E7EC] dark:border-zinc-800/60 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#0B57D0] dark:text-blue-400">
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-900/40 border border-slate-200/80 dark:border-zinc-800/60 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-blue-400">
             <Compass className="w-3.5 h-3.5" />
             <span>{t("common.nav.engineBadge")}</span>
           </div>
-          <p className="text-[11px] text-[#575C61] dark:text-zinc-400 leading-relaxed">
+          <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
             {t("common.nav.engineDesc")}
           </p>
         </div>
       </div>
 
       {/* Bottom User Area */}
-      <div className="pt-4 border-t border-[#E4E7EC] dark:border-zinc-800/80">
+      <div className="pt-4 border-t border-slate-200/80 dark:border-zinc-800/80">
         <UserMenu user={user} />
       </div>
     </aside>

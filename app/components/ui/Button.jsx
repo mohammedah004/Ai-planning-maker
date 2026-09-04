@@ -5,19 +5,19 @@ import { Loader2 } from "lucide-react";
 
 const variantStyles = {
   primary:
-    "bg-[#0B57D0] hover:bg-[#0842a0] active:bg-[#06327a] text-white shadow-sm shadow-blue-900/20 border border-blue-600/30",
+    "bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white shadow-xs border border-slate-900 dark:bg-white dark:hover:bg-slate-100 dark:active:bg-slate-200 dark:text-slate-900 dark:border-white",
   secondary:
-    "bg-white hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#0B57D0] border border-[#E4E7EC] shadow-xs dark:bg-zinc-800/90 dark:hover:bg-zinc-700/90 dark:active:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-750",
+    "bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 border border-slate-200 shadow-xs dark:bg-zinc-800/90 dark:hover:bg-zinc-700/90 dark:active:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-750",
   outline:
-    "bg-transparent hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] border border-[#E4E7EC] dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 dark:text-zinc-300 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700",
+    "bg-transparent hover:bg-slate-100 active:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 dark:text-zinc-300 dark:hover:text-zinc-100 dark:border-zinc-800 dark:hover:border-zinc-700",
   ghost:
-    "bg-transparent hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100",
+    "bg-transparent hover:bg-slate-100 active:bg-slate-200 text-slate-600 hover:text-slate-900 dark:hover:bg-zinc-800/60 dark:active:bg-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100",
   danger:
-    "bg-red-600 hover:bg-red-500 active:bg-red-700 text-white shadow-sm shadow-red-950/40 border border-red-500/30",
+    "bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white shadow-xs border border-rose-500/30",
   emerald:
-    "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-sm shadow-emerald-950/40 border border-emerald-500/30",
+    "bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white shadow-xs border border-emerald-600/30",
   subtle:
-    "bg-[#F8F9FB] hover:bg-[#F0F4F8] active:bg-[#E4E7EC] text-[#575C61] hover:text-[#1A1D1F] border border-[#E4E7EC] dark:bg-zinc-900/90 dark:hover:bg-zinc-850 dark:active:bg-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 dark:border-zinc-800",
+    "bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-850 dark:active:bg-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 dark:border-zinc-800",
 };
 
 const sizeStyles = {

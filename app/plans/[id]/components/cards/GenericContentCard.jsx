@@ -18,7 +18,7 @@ export default function GenericContentCard({
   return (
     <div
       className={`
-        group relative flex flex-col justify-between rounded-2xl bg-[#F8F9FB] dark:bg-[#131316] border border-[#E4E7EC] dark:border-zinc-800/90 hover:border-[#0B57D0]/60 hover:shadow-md transition-all duration-200 text-right overflow-hidden shadow-xs
+        group relative flex flex-col justify-between rounded-2xl bg-white dark:bg-[#131316] border border-slate-200/80 dark:border-zinc-800/90 hover:border-blue-500/60 hover:shadow-md transition-all duration-200 text-right overflow-hidden shadow-xs
         ${isMini ? "p-3.5 space-y-2.5 min-w-[220px]" : "p-5 space-y-4"}
         ${className}
       `.trim()}
@@ -26,10 +26,10 @@ export default function GenericContentCard({
       {/* Top Header */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded-lg bg-white dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800 text-[#1A1D1F] dark:text-zinc-200 text-xs font-black tabular-nums shadow-xs">
+          <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-200 text-xs font-black tabular-nums shadow-xs">
             اليوم {dayNumber}
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-850 border border-zinc-200 dark:border-zinc-750 text-[#575C61] dark:text-zinc-300 text-[11px] font-bold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-zinc-850 border border-slate-200 dark:border-zinc-750 text-slate-700 dark:text-zinc-300 text-[11px] font-bold">
             <Layers className="w-3 h-3" />
             <span>{item.postType || "منشور"}</span>
           </span>
@@ -44,7 +44,7 @@ export default function GenericContentCard({
               onRegenerate(item);
             }}
             title="إعادة صياغة المنشور بـ AI"
-            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white hover:bg-zinc-100 text-[#575C61] hover:text-[#1A1D1F] border border-[#E4E7EC] dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-zinc-700 transition-all cursor-pointer shadow-xs"
+            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-zinc-700 transition-all cursor-pointer shadow-xs"
           >
             <RefreshCw className="w-3 h-3" />
           </button>
@@ -58,25 +58,25 @@ export default function GenericContentCard({
       >
         <div
           className={`
-            relative rounded-xl bg-white dark:bg-zinc-900/60 border border-[#E4E7EC] dark:border-zinc-800 p-3.5 flex flex-col justify-between overflow-hidden group-hover:border-[#0B57D0]/40 dark:group-hover:border-zinc-700 transition-colors shadow-xs
+            relative rounded-xl bg-slate-50/50 dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 p-3.5 flex flex-col justify-between overflow-hidden group-hover:border-blue-500/40 dark:group-hover:border-zinc-700 transition-colors shadow-xs
             ${isMini ? "h-28" : "h-36"}
           `}
         >
           <div className="my-auto space-y-1">
-            <p className="text-xs font-bold text-[#1A1D1F] dark:text-zinc-100 line-clamp-3 leading-relaxed">
+            <p className="text-xs font-bold text-slate-900 dark:text-zinc-100 line-clamp-3 leading-relaxed">
               {hook}
             </p>
           </div>
         </div>
 
         {!isMini && (
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-[#575C61] dark:text-zinc-400">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-slate-600 dark:text-zinc-400">
             {item.contentPillar && (
-              <span className="truncate max-w-[140px] text-[#1A1D1F] dark:text-zinc-300 font-medium">
+              <span className="truncate max-w-[140px] text-slate-900 dark:text-zinc-300 font-medium">
                 {item.contentPillar}
               </span>
             )}
-            <span className="inline-flex items-center gap-1 text-[#0B57D0] dark:text-blue-400 group-hover:text-[#0842a0] dark:group-hover:text-blue-300 font-bold transition-colors">
+            <span className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300 font-bold transition-colors">
               <span>عرض التفاصيل</span>
               <ArrowLeft className="w-3 h-3" />
             </span>

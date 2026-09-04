@@ -33,6 +33,8 @@ import PlanCalendarView from "./components/calendar/PlanCalendarView";
 import ContentMixInsights from "./components/ContentMixInsights";
 import ShareModal from "./components/ShareModal";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
+import MultiDayExportImportModal from "./components/MultiDayExportImportModal";
+import MultiDayBatchReviewModal from "./components/MultiDayBatchReviewModal";
 import { detectStrategicWarnings } from "@/lib/strategic-warnings";
 import { computeStrategyConfidenceScore } from "@/lib/strategic-rationale";
 import { pingBackendHealth } from "@/lib/backend-health";
@@ -62,6 +64,8 @@ export default function PlanDetailPage({ params }) {
   const [cancelError, setCancelError] = useState(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareToken, setShareToken] = useState(null);
+  const [isMultiDayExportOpen, setIsMultiDayExportOpen] = useState(false);
+  const [batchProposal, setBatchProposal] = useState(null);
 
   // Viewer state: "diagnosis" | "calendar" | "insights" | "strategy" | "pillars"
   const [activeTab, setActiveTab] = useState("diagnosis");
@@ -231,6 +235,60 @@ export default function PlanDetailPage({ params }) {
     return contentData?.plan || statusData?.plan || {};
   }, [contentData?.plan, statusData?.plan]);
 
+  // Google Sheets sync state tracking
+  const exportData = statusData?.export || (contentData?.plan ? {
+    spreadsheet_url: contentData.plan.sheetUrl,
+    status: contentData.plan.sheetStatus,
+    target_version: contentData.plan.sheetTargetVersion,
+    exported_version: contentData.plan.sheetExportedVersion,
+  } : null);
+
+  const contentVersion = planInfo?.contentVersion || planInfo?.content_version || 1;
+  const exportedVersion = exportData?.exported_version;
+  const sheetStatus = exportData?.status;
+
+  const isSheetSynced = sheetStatus === "completed" && exportedVersion === contentVersion;
+  const isSheetSyncing = sheetStatus === "stale" || (exportedVersion !== null && exportedVersion !== undefined && exportedVersion < contentVersion);
+  const isSheetFailed = sheetStatus === "failed";
+
+  const [isRetryingSync, setIsRetryingSync] = useState(false);
+
+  // Poll status while sheet synchronization is in flight
+  useEffect(() => {
+    if (!isSheetSyncing) return;
+
+    const syncPollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/plans/${planId}/status`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          setStatusData(json.data);
+        }
+      } catch (e) {
+        console.warn("Sheet sync poll error:", e);
+      }
+    }, 3000);
+
+    return () => clearInterval(syncPollInterval);
+  }, [isSheetSyncing, planId]);
+
+  const handleRetrySheetSync = async () => {
+    setIsRetryingSync(true);
+    try {
+      const res = await fetch(`/api/plans/${planId}/retry-export`, { method: "POST" });
+      const json = await res.json();
+      if (json.success) {
+        const resPoll = await fetch(`/api/plans/${planId}/status`);
+        const jsonPoll = await resPoll.json();
+        if (jsonPoll.success) setStatusData(jsonPoll.data);
+      }
+    } catch (err) {
+      console.error("Retry sheet sync error:", err);
+    } finally {
+      setIsRetryingSync(false);
+    }
+  };
+
   const allContentItems = useMemo(() => {
     return contentData?.contentItems || [];
   }, [contentData?.contentItems]);
@@ -328,23 +386,71 @@ export default function PlanDetailPage({ params }) {
                     <button
                       type="button"
                       onClick={() => setIsShareModalOpen(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0B57D0] hover:bg-[#0842a0] text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-xs dark:bg-slate-900 dark:text-slate-200 dark:border-slate-800 font-bold text-xs transition-all cursor-pointer"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       <span>{t("plans.detail.sharePlan")}</span>
                     </button>
 
+                    <button
+                      type="button"
+                      onClick={() => setIsMultiDayExportOpen(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-50/80 text-violet-700 border border-violet-200 hover:bg-violet-100/80 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800 shadow-xs font-bold text-xs transition-all cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                      <span>تحرير وتصدير بـ External AI</span>
+                    </button>
+
+                    {/* Google Sheet Action & Synchronized Version Indicator */}
                     {sheetUrl && (
-                      <a
-                        href={sheetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition-all shadow-sm"
-                      >
-                        <FileSpreadsheet className="w-4 h-4" />
-                        <span>{t("plans.detail.openSheet")}</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <a
+                          href={sheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-emerald-700 border border-slate-200 hover:bg-emerald-50/50 shadow-xs dark:bg-slate-900 dark:text-emerald-400 dark:border-slate-800 font-bold text-xs transition-all cursor-pointer"
+                        >
+                          <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                          <span>{t("plans.detail.openSheet")}</span>
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                        </a>
+
+                        {isSheetSynced ? (
+                          <span
+                            title={`Google Sheet متزامن مع أحدث تعديلات الخطة التسويقية (الإصدار V${contentVersion})`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>متزامن (V{contentVersion})</span>
+                          </span>
+                        ) : isSheetSyncing ? (
+                          <span
+                            title="جاري مزامنة التعديلات الأخيرة مع Google Sheet في الخلفية..."
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs font-bold animate-pulse"
+                          >
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                            <span>جاري المزامنة...</span>
+                          </span>
+                        ) : isSheetFailed ? (
+                          <div className="inline-flex items-center gap-1.5">
+                            <span
+                              title={exportData?.error_message || "تعذرت مزامنة التعديلات مع Google Sheet"}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-bold"
+                            >
+                              <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                              <span>تعذرت المزامنة</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleRetrySheetSync}
+                              disabled={isRetryingSync}
+                              className="px-2.5 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                            >
+                              {isRetryingSync ? <Loader2 className="w-3 h-3 animate-spin" /> : "إعادة المحاولة"}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
                     )}
                   </>
                 ) : isFailed ? (
@@ -466,17 +572,17 @@ export default function PlanDetailPage({ params }) {
             {isCompleted && (
               <div className="space-y-6">
                 {/* Navigation Tabs */}
-                <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E7EC] dark:border-zinc-800 pb-3">
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab("diagnosis")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "diagnosis"
-                        ? "bg-[#0B57D0] text-white shadow-sm"
-                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                        ? "bg-slate-900 text-white shadow-xs border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-xs dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
-                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <Sparkles className={`w-4 h-4 ${activeTab === "diagnosis" ? "text-amber-300 dark:text-amber-500" : "text-amber-500 dark:text-amber-400"}`} />
                     <span>{t("plans.detail.tabDiagnosis")}</span>
                   </button>
 
@@ -485,8 +591,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("calendar")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "calendar"
-                        ? "bg-[#0B57D0] text-white shadow-sm"
-                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                        ? "bg-slate-900 text-white shadow-xs border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-xs dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Calendar className="w-4 h-4" />
@@ -498,8 +604,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("insights")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "insights"
-                        ? "bg-[#0B57D0] text-white shadow-sm"
-                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                        ? "bg-slate-900 text-white shadow-xs border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-xs dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Compass className="w-4 h-4" />
@@ -511,8 +617,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("strategy")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "strategy"
-                        ? "bg-[#0B57D0] text-white shadow-sm"
-                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                        ? "bg-slate-900 text-white shadow-xs border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-xs dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <Target className="w-4 h-4" />
@@ -524,8 +630,8 @@ export default function PlanDetailPage({ params }) {
                     onClick={() => setActiveTab("pillars")}
                     className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeTab === "pillars"
-                        ? "bg-[#0B57D0] text-white shadow-sm"
-                        : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                        ? "bg-slate-900 text-white shadow-xs border border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-xs dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
                     <span>{t("plans.detail.tabPillars")}</span>
@@ -608,6 +714,30 @@ export default function PlanDetailPage({ params }) {
         isLoading={isCancelling}
         error={cancelError}
         variant="warning"
+      />
+
+      {/* Multi-Day External AI Export & Import Modal */}
+      <MultiDayExportImportModal
+        isOpen={isMultiDayExportOpen}
+        onClose={() => setIsMultiDayExportOpen(false)}
+        plan={planInfo}
+        contentItems={allContentItems}
+        onProposalReady={(proposal) => {
+          setBatchProposal(proposal);
+        }}
+      />
+
+      {/* Multi-Day Batch Review & Atomic Commit Modal */}
+      <MultiDayBatchReviewModal
+        isOpen={Boolean(batchProposal)}
+        onClose={() => setBatchProposal(null)}
+        planId={planId}
+        proposal={batchProposal}
+        onBatchCommitSuccess={() => {
+          setBatchProposal(null);
+          contentLoadedRef.current = false;
+          loadPlanContent();
+        }}
       />
     </AppShell>
   );
