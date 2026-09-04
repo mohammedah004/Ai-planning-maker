@@ -51,8 +51,21 @@ export async function POST(request) {
     }
 
     // -------------------------------------------------------------
-    // LEGACY N8N WORKFLOW PATH (Untouched when flag is false)
+    // LEGACY N8N WORKFLOW PATH (PERMANENTLY DEPRECATED & BLOCKED)
     // -------------------------------------------------------------
+    // Architecture Note: The n8n legacy workflow is officially deprecated and permanently blocked.
+    // Full atomic quota verification (create_plan_with_quota_check RPC) and generation are strictly
+    // enforced exclusively through the Express backend.
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "LEGACY_PATH_DEPRECATED",
+          message: "مسار التوليد القديم مهجور وغير متاح. جميع عمليات إنشاء الخطط تتطلب مسار Express Backend.",
+        },
+      },
+      { status: 501 }
+    );
 
     // 1. Validation & Sanitization
     const validation = validatePlanInput(body);
