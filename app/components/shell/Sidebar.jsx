@@ -11,8 +11,12 @@ import {
 } from "lucide-react";
 import SidebarItem from "./SidebarItem";
 import UserMenu from "./UserMenu";
+import MadarLogo from "@/app/components/ui/MadarLogo";
+import { useVoice } from "@/app/contexts/VoiceContext";
 
 export default function Sidebar({ user = null, brandCount = null, className = "" }) {
+  const { t } = useVoice();
+
   return (
     <aside
       aria-label="التنقل الرئيسي"
@@ -24,57 +28,44 @@ export default function Sidebar({ user = null, brandCount = null, className = ""
       {/* Top Brand & Navigation */}
       <div className="space-y-6">
         {/* Brand Area */}
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-3 px-2 py-1.5 rounded-xl group transition-colors"
-        >
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-            AI
-          </div>
-          <div className="space-y-0.5 min-w-0">
-            <div className="text-sm font-extrabold text-[#1A1D1F] dark:text-zinc-100 tracking-tight leading-none group-hover:text-[#0B57D0] dark:group-hover:text-blue-400 transition-colors">
-              مخطط التسويق الذكي
-            </div>
-            <div className="text-[11px] text-[#575C61] dark:text-zinc-500 font-medium leading-none">
-              مساحة الذكاء الاستراتيجي
-            </div>
-          </div>
-        </Link>
+        <div className="px-1 py-1">
+          <MadarLogo href="/" variant="full" size="md" />
+        </div>
 
         {/* Primary Navigation List */}
         <nav className="space-y-1.5" aria-label="أقسام مساحة العمل">
           <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-500">
-            مساحة العمل
+            {t("common.nav.workspace")}
           </div>
 
           <SidebarItem
             href="/dashboard"
-            label="لوحة التحكم والخطط"
+            label={t("common.nav.dashboard")}
             icon={LayoutDashboard}
             exact={true}
           />
 
           <SidebarItem
             href="/plans/new"
-            label="إنشاء خطة تسويقية"
+            label={t("common.nav.newPlan")}
             icon={PlusCircle}
             exact={true}
           />
 
           <SidebarItem
             href="/brands"
-            label="ملفات البراند والذاكرة"
+            label={t("common.nav.brands")}
             icon={Building2}
             badge={brandCount}
           />
 
           <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-500">
-            عام
+            {t("common.nav.general")}
           </div>
 
           <SidebarItem
             href="/settings"
-            label="الإعدادات"
+            label={t("common.nav.settings")}
             icon={Settings}
             exact={true}
           />
@@ -84,10 +75,10 @@ export default function Sidebar({ user = null, brandCount = null, className = ""
         <div className="p-4 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900/40 border border-[#E4E7EC] dark:border-zinc-800/60 space-y-2">
           <div className="flex items-center gap-2 text-xs font-bold text-[#0B57D0] dark:text-blue-400">
             <Compass className="w-3.5 h-3.5" />
-            <span>محرك التخطيط لـ 30 يوماً</span>
+            <span>{t("common.nav.engineBadge")}</span>
           </div>
           <p className="text-[11px] text-[#575C61] dark:text-zinc-400 leading-relaxed">
-            تشخيص مرحلة النضج، استراتيجية الجمهور، محاور المحتوى، وتصدير Google Sheet.
+            {t("common.nav.engineDesc")}
           </p>
         </div>
       </div>

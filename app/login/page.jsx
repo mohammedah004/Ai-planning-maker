@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Sparkles, ArrowLeft, ShieldCheck, Calendar, FileSpreadsheet } from "lucide-react";
 import GoogleSignInButton from "./GoogleSignInButton";
+import MadarLogo from "@/app/components/ui/MadarLogo";
 
 export const metadata = {
-  title: "تسجيل الدخول - مخطط التسويق الذكي",
-  description: "سجل الدخول للوصول إلى خطط محتوى إنستغرام لـ 30 يوماً بالذكاء الاصطناعي.",
+  title: "تسجيل الدخول - MADAR - AI Content Planning",
+  description: "سجل الدخول إلى MADAR للوصول إلى خطط محتوى إنستغرام لـ 30 يوماً بالذكاء الاصطناعي.",
 };
 
 export default async function LoginPage({ searchParams }) {
@@ -32,18 +33,14 @@ export default async function LoginPage({ searchParams }) {
       <div className="absolute bottom-1/4 -left-48 w-96 h-96 bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
-        {/* Brand header */}
-        <div className="text-center mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-[#E4E7EC] dark:border-slate-800 text-[#0B57D0] dark:text-indigo-400 text-sm font-medium hover:border-blue-300 dark:hover:border-slate-700 transition-colors mb-4 shadow-xs"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>مخطط التسويق الذكي</span>
-          </Link>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1A1D1F] dark:text-white">مرحباً بك مجدداً</h1>
+        {/* Brand header with Full Splash MADAR Logo */}
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="mb-6">
+            <MadarLogo href="/" variant="splash" size="md" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1D1F] dark:text-white">مرحباً بك في MADAR</h1>
           <p className="text-[#575C61] dark:text-slate-400 mt-2 text-sm">
-            سجل دخولك لإنشاء وإدارة وتصدير خطط محتوى إنستغرام لشهر كامل.
+            سجل دخولك لإنشاء وإدارة وتصدير خطط محتوى إنستغرام لشهر كامل بالذكاء الاصطناعي.
           </p>
         </div>
 

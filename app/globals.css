@@ -111,3 +111,65 @@ body {
   background-color: rgba(37, 99, 235, 0.35);
   color: #ffffff;
 }
+
+/* ==========================================================================
+   MADAR Brand Visual Identity & Hover/Interaction Effects ("The n8n Effect")
+   ========================================================================== */
+
+.madar-logo-container {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  will-change: filter, transform;
+}
+
+.madar-logo-glow {
+  transition: all 0.3s ease-in-out;
+  filter: drop-shadow(0 0 0px rgba(0, 191, 255, 0));
+  will-change: filter, transform;
+  transform: translateZ(0);
+}
+
+.madar-brand-text {
+  transition: all 0.3s ease-in-out;
+  letter-spacing: 0.12em;
+}
+
+/* Hover & Focus state: subtle neon-blue outer glow pulse */
+.madar-logo-container:hover .madar-logo-glow,
+.madar-logo-container:focus-visible .madar-logo-glow,
+.group:hover .madar-logo-glow {
+  filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.75)) drop-shadow(0 0 16px rgba(11, 87, 208, 0.35));
+}
+
+.madar-logo-container:hover .madar-brand-text,
+.madar-logo-container:focus-visible .madar-brand-text,
+.group:hover .madar-brand-text {
+  text-shadow: 0 0 8px rgba(0, 191, 255, 0.45);
+}
+
+/* Active / Press state: slight tactile compression */
+.madar-logo-container:active {
+  transform: scale(0.98);
+}
+
+/* Branded Loading Orbit & Pulse Animations */
+@keyframes madarLoadingPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px -2px rgba(0, 191, 255, 0.25), 0 0 10px rgba(11, 87, 208, 0.2);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 8px 30px 2px rgba(0, 191, 255, 0.45), 0 0 20px rgba(11, 87, 208, 0.4);
+  }
+}
+
+.madar-loading-pulse {
+  animation: madarLoadingPulse 2.4s ease-in-out infinite;
+}
+

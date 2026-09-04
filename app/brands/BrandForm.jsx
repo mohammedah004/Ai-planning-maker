@@ -19,9 +19,11 @@ import {
   Target,
   Building2,
 } from "lucide-react";
+import { useVoice } from "@/app/contexts/VoiceContext";
 
 export default function BrandForm({ initialData = null, isEdit = false, brandId = null }) {
   const router = useRouter();
+  const { t } = useVoice();
 
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -395,11 +397,11 @@ export default function BrandForm({ initialData = null, isEdit = false, brandId 
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>جاري حفظ ملف البراند...</span>
+                  <span>{t("brands.form.savingBtn")}</span>
                 </>
               ) : (
                 <>
-                  <span>{isEdit ? "حفظ التعديلات" : "حفظ ملف البراند الجديد"}</span>
+                  <span>{isEdit ? "حفظ التعديلات" : t("brands.form.saveBtn")}</span>
                 </>
               )}
             </button>

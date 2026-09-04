@@ -8,38 +8,22 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
+import MadarLogo from "@/app/components/ui/MadarLogo";
 import SidebarItem from "./SidebarItem";
 import UserMenu from "./UserMenu";
 
-export default function Sidebar({ user = null, className = "" }) {
+export default function Sidebar({ user = null, brandCount = null, className = "" }) {
   return (
     <aside
-      aria-label="التنقل الرئيسي"
+      aria-label="القائمة الجانبية الرئيسية"
       className={`
-        hidden lg:flex flex-col fixed inset-y-0 right-0 z-30
-        w-64 xl:w-72 bg-[#0d0d10] border-l border-zinc-800/80
-        select-none text-zinc-100
+        w-64 h-screen sticky top-0 flex flex-col justify-between border-l border-zinc-800/80 bg-zinc-950 shrink-0 text-right select-none
         ${className}
       `.trim()}
     >
       {/* 1. Brand Area */}
       <div className="h-16 px-5 border-b border-zinc-800/80 flex items-center justify-between">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-3 group focus-visible:outline-none"
-        >
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-sm shadow-blue-900/40 group-hover:bg-blue-500 transition-colors shrink-0">
-            AI
-          </div>
-          <div className="text-right">
-            <span className="font-extrabold text-sm text-zinc-100 block leading-tight tracking-tight">
-              مخطط التسويق الذكي
-            </span>
-            <span className="text-[10px] text-zinc-400 font-medium tracking-wider">
-              استراتيجية ومحتوى إنستغرام
-            </span>
-          </div>
-        </Link>
+        <MadarLogo href="/" variant="full" size="sm" />
       </div>
 
       {/* 2. Navigation Area */}

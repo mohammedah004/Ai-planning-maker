@@ -1,20 +1,28 @@
 "use client";
 
 import { AlertTriangle, Trash2, Loader2, X, XCircle } from "lucide-react";
+import { useVoice } from "@/app/contexts/VoiceContext";
 
 export default function ConfirmDeleteModal({
   isOpen,
   onClose,
   onConfirm,
-  title = "حذف العنصر",
-  description = "هل أنت متأكد من إجراء هذا الحذف؟ لا يمكن التراجع عن هذا الإجراء بعد تنفيذه.",
-  confirmText = "تأكيد الحذف النهائي",
-  cancelText = "إلغاء",
+  title,
+  description,
+  confirmText,
+  cancelText,
   isLoading = false,
   error = null,
   variant = "danger", // "danger" | "warning"
 }) {
+  const { t } = useVoice();
+
   if (!isOpen) return null;
+
+  const displayTitle = title ?? t("common.deleteModal.title");
+  const displayDescription = description ?? t("common.deleteModal.warning");
+  const displayConfirmText = confirmText ?? t("common.deleteModal.confirm");
+  const displayCancelText = cancelText ?? t("common.deleteModal.cancel");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-zinc-950/80 backdrop-blur-md text-right">
@@ -49,9 +57,9 @@ export default function ConfirmDeleteModal({
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-lg font-extrabold text-[#1A1D1F] dark:text-zinc-100 text-center">{title}</h3>
+            <h3 className="text-lg font-extrabold text-[#1A1D1F] dark:text-zinc-100 text-center">{displayTitle}</h3>
             <p className="text-xs sm:text-sm text-[#575C61] dark:text-zinc-400 leading-relaxed text-center max-w-xs mx-auto">
-              {description}
+              {displayDescription}
             </p>
           </div>
         </div>
@@ -79,10 +87,10 @@ export default function ConfirmDeleteModal({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>جاري الحذف...</span>
+                <span>{t("common.deleteModal.deleting")}</span>
               </>
             ) : (
-              <span>{confirmText}</span>
+              <span>{displayConfirmText}</span>
             )}
           </button>
 
@@ -92,7 +100,7 @@ export default function ConfirmDeleteModal({
             disabled={isLoading}
             className="py-3 px-5 rounded-xl bg-white hover:bg-[#F0F4F8] text-[#575C61] hover:text-[#1A1D1F] border border-[#E4E7EC] font-bold text-xs sm:text-sm transition-colors cursor-pointer disabled:opacity-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 dark:border-transparent"
           >
-            {cancelText}
+            {displayCancelText}
           </button>
         </div>
       </div>

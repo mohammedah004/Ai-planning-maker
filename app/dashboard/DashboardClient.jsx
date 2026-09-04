@@ -17,6 +17,7 @@ import {
   Search,
   Layers,
   Sparkles,
+  X,
 } from "lucide-react";
 import ConfirmDeleteModal from "@/app/components/ConfirmDeleteModal";
 import { pingBackendHealth } from "@/lib/backend-health";
@@ -28,6 +29,7 @@ import Card from "@/app/components/ui/Card";
 import StatMetric from "@/app/components/ui/StatMetric";
 import EmptyState from "@/app/components/ui/EmptyState";
 import Tabs from "@/app/components/ui/Tabs";
+import { useVoice } from "@/app/contexts/VoiceContext";
 
 const formatObjective = (obj) => {
   const map = {
@@ -41,8 +43,91 @@ const formatObjective = (obj) => {
   return map[obj] || obj?.replace(/_/g, " ") || "غير محدد";
 };
 
+/**
+ * Contextual micro-card for first-time voice onboarding.
+ * Persisted in browser/device localStorage ('hasSeenVoiceOnboarding').
+ */
+function VoiceOnboardingCard({ currentMode, onSelectVoice, onDismiss, t }) {
+  return (
+    <div className="p-5 sm:p-6 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900/60 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs relative overflow-hidden transition-all text-right">
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="absolute top-4 left-4 p-1.5 rounded-xl text-[#575C61] hover:text-[#1A1D1F] hover:bg-[#F0F4F8] dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+        aria-label="إغلاق التلميح"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <div className="space-y-4 max-w-2xl">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#0B57D0] dark:text-blue-400 text-[11px] font-bold">
+            <Sparkles className="w-3 h-3" />
+            <span>تخصيص الواجهة</span>
+          </div>
+          <h3 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">
+            {t("dashboard.onboarding.title")}
+          </h3>
+          <p className="text-xs text-[#575C61] dark:text-zinc-400 leading-relaxed">
+            {t("dashboard.onboarding.subtitle")}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => onSelectVoice("clear")}
+            className={`p-4 rounded-xl border text-right transition-all cursor-pointer ${
+              currentMode === "clear"
+                ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30"
+                : "border-[#E4E7EC] dark:border-zinc-800 bg-white dark:bg-zinc-900/40 hover:border-zinc-300 dark:hover:border-zinc-700"
+            }`}
+          >
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-100">
+                {t("dashboard.onboarding.clearTitle")}
+              </span>
+              <span className="text-[10px] font-bold text-zinc-500">الافتراضي</span>
+            </div>
+            <p className="text-[11px] text-[#575C61] dark:text-zinc-400">
+              {t("dashboard.onboarding.clearDesc")}
+            </p>
+            <div className="mt-2 text-[11px] font-medium text-[#0B57D0] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/20 p-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
+              {t("dashboard.onboarding.clearPreview")}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSelectVoice("friendly")}
+            className={`p-4 rounded-xl border text-right transition-all cursor-pointer ${
+              currentMode === "friendly"
+                ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30"
+                : "border-[#E4E7EC] dark:border-zinc-800 bg-white dark:bg-zinc-900/40 hover:border-zinc-300 dark:hover:border-zinc-700"
+            }`}
+          >
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-100">
+                {t("dashboard.onboarding.friendlyTitle")}
+              </span>
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">تشاركي</span>
+            </div>
+            <p className="text-[11px] text-[#575C61] dark:text-zinc-400">
+              {t("dashboard.onboarding.friendlyDesc")}
+            </p>
+            <div className="mt-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 p-2 rounded-lg border border-emerald-100 dark:border-emerald-900/30">
+              {t("dashboard.onboarding.friendlyPreview")}
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardClient({ session, initialPlans = [], initialBrands = [] }) {
   const router = useRouter();
+  const { mode, setVoice, t } = useVoice();
   const [plans, setPlans] = useState(initialPlans);
   const [brands, setBrands] = useState(initialBrands);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -50,10 +135,32 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
   const [planToDelete, setPlanToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     pingBackendHealth();
+    try {
+      const hasSeen = localStorage.getItem("hasSeenVoiceOnboarding");
+      if (!hasSeen) {
+        setShowOnboarding(true);
+      }
+    } catch (_) {}
   }, []);
+
+  const handleSelectVoice = (selectedMode) => {
+    setVoice(selectedMode);
+    try {
+      localStorage.setItem("hasSeenVoiceOnboarding", "true");
+    } catch (_) {}
+    setShowOnboarding(false);
+  };
+
+  const handleDismissOnboarding = () => {
+    try {
+      localStorage.setItem("hasSeenVoiceOnboarding", "true");
+    } catch (_) {}
+    setShowOnboarding(false);
+  };
 
   const handleConfirmDelete = async () => {
     if (!planToDelete) return;
@@ -108,13 +215,13 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
   });
 
   const filterTabs = [
-    { id: "all", label: "جميع الخطط", count: plans.length },
-    { id: "completed", label: "المكتملة", count: completedCount },
+    { id: "all", label: t("dashboard.filter.all"), count: plans.length },
+    { id: "completed", label: t("dashboard.filter.completed"), count: completedCount },
     ...(inProgressCount > 0
-      ? [{ id: "generating", label: "قيد التوليد", count: inProgressCount }]
+      ? [{ id: "generating", label: t("dashboard.filter.generating"), count: inProgressCount }]
       : []),
     ...(failedCount > 0
-      ? [{ id: "failed", label: "تعثرت", count: failedCount }]
+      ? [{ id: "failed", label: t("dashboard.filter.failed"), count: failedCount }]
       : []),
   ];
 
@@ -123,9 +230,9 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
       <div className="w-full space-y-8 text-right">
         {/* Orientation & Contextual Header */}
         <PageHeader
-          title="مساحة العمل والتخطيط"
-          description="مركز إدارة واستعراض خطط محتوى إنستغرام لـ 30 يوماً، وتوليد الاستراتيجيات المعتمدة وتصدير ملفات التنفيذ."
-          badge={<Badge variant="blue">إصدار الذكاء التسويقي</Badge>}
+          title={t("dashboard.header.title")}
+          description={t("dashboard.header.description")}
+          badge={<Badge variant="blue">{t("dashboard.header.badge")}</Badge>}
           actions={
             <div className="flex flex-wrap items-center gap-3">
               <Button
@@ -135,7 +242,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                 startIcon={Building2}
                 className="bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm dark:bg-zinc-800/90 dark:hover:bg-zinc-700/90 dark:text-zinc-100 dark:border-zinc-750"
               >
-                <span>ذاكرة البراند</span>
+                <span>{t("common.nav.brands")}</span>
                 <span className="px-1.5 py-0.2 bg-zinc-800 dark:bg-zinc-700 text-zinc-300 text-xs rounded-full tabular-nums">
                   {brands.length}
                 </span>
@@ -147,42 +254,52 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                 size="md"
                 startIcon={Plus}
               >
-                إنشاء خطة 30 يوم جديدة
+                {t("dashboard.header.newPlanAction")}
               </Button>
             </div>
           }
         />
 
-        {/* Meaningful Overview Metrics (100% Authentic Data) */}
+        {/* Lightweight First-Visit Micro-Onboarding Card */}
+        {showOnboarding && (
+          <VoiceOnboardingCard
+            currentMode={mode}
+            onSelectVoice={handleSelectVoice}
+            onDismiss={handleDismissOnboarding}
+            t={t}
+          />
+        )}
+
+        {/* Meaningful Overview Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatMetric
-            label="الخطط المكتملة"
+            label={t("dashboard.stats.completedPlans")}
             value={completedCount}
-            subtitle="خطط جاهزة للتنفيذ والإخراج"
+            subtitle={t("dashboard.stats.completedPlansDesc")}
             variant="emerald"
             icon={CheckCircle2}
           />
 
           <StatMetric
-            label="المنشورات المخططة"
+            label={t("dashboard.stats.totalPlans")}
             value={totalPlannedPosts}
-            subtitle="منشور مصاغ بالكامل لـ 30 يوماً"
+            subtitle={t("dashboard.stats.totalPlansDesc")}
             variant="blue"
             icon={Layers}
           />
 
           <StatMetric
-            label="قيد المعالجة"
+            label={t("dashboard.stats.inProgress")}
             value={inProgressCount}
-            subtitle={inProgressCount > 0 ? "جاري التوليد بواسطة AI" : "لا توجد معالجات نشطة الآن"}
+            subtitle={t("dashboard.stats.inProgressDesc")}
             variant={inProgressCount > 0 ? "amber" : "default"}
             icon={Clock}
           />
 
           <StatMetric
-            label="ملفات البراند المسجلة"
+            label={t("dashboard.stats.savedBrands")}
             value={brands.length}
-            subtitle="أصول ذاكرة متاحة للتعبئة الفورية"
+            subtitle={t("dashboard.stats.savedBrandsDesc")}
             variant="purple"
             icon={Building2}
           />
@@ -209,7 +326,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="ابحث باسم المنتج أو الفئة..."
+                    placeholder={t("dashboard.search.placeholder")}
                     className="w-56 sm:w-64 py-2 pr-9 pl-4 rounded-xl bg-white dark:bg-[#09090b] text-xs text-[#1A1D1F] dark:text-zinc-100 placeholder-[#575C61] dark:placeholder-zinc-500 border border-[#E4E7EC] dark:border-zinc-800 focus:border-[#0B57D0] focus:outline-none transition-colors shadow-xs"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#575C61] dark:text-zinc-500 pointer-events-none">
@@ -234,8 +351,8 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
             /* Empty State when no plans exist */
             <EmptyState
               icon={Compass}
-              title="مساحة التخطيط جاهزة لبدء أولى خططك"
-              description="لم تقم بإنشاء أي خطة محتوى تسويقية بعد. ابدأ بإدخال بيانات منتجك وسيقوم المحرك بتشخيص السوق، صياغة الاستراتيجية، وبناء جدول منشورات شهر كامل وتصديره لـ Google Sheets."
+              title={t("dashboard.empty.title")}
+              description={t("dashboard.empty.description")}
               action={
                 <Button
                   href="/plans/new"
@@ -243,7 +360,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                   size="lg"
                   startIcon={Plus}
                 >
-                  إنشاء خطة 30 يوم الآن
+                  {t("dashboard.empty.action")}
                 </Button>
               }
               secondaryAction={
@@ -254,7 +371,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                     size="lg"
                     startIcon={Building2}
                   >
-                    حفظ ملف براند أولاً
+                    {t("dashboard.empty.brandAction")}
                   </Button>
                 ) : null
               }
@@ -263,7 +380,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
             /* Empty State for Filter Query */
             <div className="p-12 text-center rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900/40 border border-dashed border-[#E4E7EC] dark:border-zinc-800 space-y-3">
               <p className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-300">
-                لا توجد خطط تسويقية تطابق بحثك الحالي
+                {t("dashboard.search.empty")}
               </p>
               <Button
                 variant="ghost"
@@ -273,7 +390,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                   setStatusFilter("all");
                 }}
               >
-                إعادة ضبط الفلاتر
+                {t("dashboard.search.reset")}
               </Button>
             </div>
           ) : (
@@ -325,8 +442,8 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                           setDeleteError(null);
                           setPlanToDelete({ id: plan.id, name: plan.product_name });
                         }}
-                        title="حذف الخطة"
-                        aria-label="حذف الخطة"
+                        title={t("dashboard.card.deletePlan")}
+                        aria-label={t("dashboard.card.deletePlan")}
                         className="p-1.5 rounded-lg text-[#575C61] hover:text-red-600 hover:bg-[#F0F4F8] dark:text-zinc-500 dark:hover:text-red-400 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -345,17 +462,17 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                       <div>
                         {isCompleted && (
                           <Badge variant="emerald" size="sm" dot={true}>
-                            خطة 30 يوماً مكتملة وجاهزة
+                            {t("dashboard.card.statusCompleted")}
                           </Badge>
                         )}
                         {isGenerating && (
                           <Badge variant="blue" size="sm" dot={true} className="animate-pulse">
-                            جاري التوليد الذكي...
+                            {t("dashboard.card.statusGenerating")}
                           </Badge>
                         )}
                         {isFailed && (
                           <Badge variant="red" size="sm" dot={true}>
-                            تعثر التوليد — انقر لإعادة المحاولة
+                            {t("dashboard.card.statusFailed")}
                           </Badge>
                         )}
                       </div>
@@ -375,7 +492,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
                             className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-400 dark:hover:bg-emerald-900/40 transition-colors"
-                            title="فتح ملف Google Sheet المعتمد"
+                            title={t("dashboard.card.openSheet")}
                           >
                             <FileSpreadsheet className="w-4 h-4" />
                           </a>
@@ -387,7 +504,7 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
                           size="xs"
                           endIcon={ArrowLeft}
                         >
-                          {isCompleted ? "عرض الخطة" : "متابعة التوليد"}
+                          {isCompleted ? t("dashboard.card.viewPlan") : t("dashboard.card.continueGenerating")}
                         </Button>
                       </div>
                     </div>
@@ -404,14 +521,14 @@ export default function DashboardClient({ session, initialPlans = [], initialBra
         isOpen={Boolean(planToDelete)}
         onClose={() => setPlanToDelete(null)}
         onConfirm={handleConfirmDelete}
-        title="حذف الخطة التسويقية"
+        title={t("dashboard.deleteModal.title")}
         description={
           planToDelete
-            ? `هل أنت متأكد من حذف خطة "${planToDelete.name}"؟ سيتم حذف جميع منشورات الـ 30 يوماً والتشخيص الاستراتيجي المرتبط بها نهائياً.`
+            ? `${t("dashboard.deleteModal.description")} ("${planToDelete.name}")`
             : ""
         }
-        confirmText="تأكيد الحذف النهائي"
-        cancelText="إلغاء"
+        confirmText={t("dashboard.deleteModal.confirm")}
+        cancelText={t("dashboard.deleteModal.cancel")}
         isLoading={isDeleting}
         error={deleteError}
         variant="danger"

@@ -2,9 +2,9 @@ import { auth } from "@/auth";
 import LandingPageClient from "@/app/components/landing/LandingPageClient";
 
 export const metadata = {
-  title: "مخطط التسويق الذكي — خطة محتوى إنستغرام لـ 30 يوماً وتصدير Google Sheets",
+  title: "MADAR - AI Content Planning | مدار — المنصة الذكية لتخطيط المحتوى",
   description:
-    "حوّل وصف منتجك إلى استراتيجية تسويقية متكاملة لـ 30 يوماً على إنستغرام تشمل نصوص المنشورات، نصوص التصاميم الجرافيكية، التوجيه الإخراجي، وذاكرة البراند مع تصدير مباشر إلى Google Sheets.",
+    "حوّل وصف منتجك إلى استراتيجية تسويقية متكاملة لـ 30 يوماً على إنستغرام تشمل نصوص المنشورات، نصوص التصاميم الجرافيكية، التوجيه الإخراجي، وذاكرة البراند مع تصدير مباشر إلى Google Sheets عبر MADAR.",
 };
 
 export default async function HomePage() {

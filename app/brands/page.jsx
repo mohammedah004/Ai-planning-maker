@@ -4,8 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import BrandsClient from "./BrandsClient";
 
 export const metadata = {
-  title: "ملفات البراند والذاكرة الذكية - مخطط التسويق الذكي",
-  description: "إدارة ملفات البراند واستعراض الذاكرة الاستراتيجية وتاريخ تطور الخطط.",
+  title: "ملفات البراند والذاكرة الذكية",
+  description: "إدارة ملفات البراند واستعراض الذاكرة الاستراتيجية وتاريخ تطور الخطط في MADAR.",
 };
 
 export default async function BrandsPage() {

@@ -24,6 +24,7 @@ import {
   Flame,
 } from "lucide-react";
 import ThemeToggle from "@/app/components/shell/ThemeToggle";
+import MadarLogo from "@/app/components/ui/MadarLogo";
 
 function InstagramIcon({ className = "w-4 h-4" }) {
   return (
@@ -114,19 +115,7 @@ export default function LandingPageClient({ user = null }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           {/* Right: Brand Identity & Badge */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3 group select-none">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0B57D0] to-blue-500 flex items-center justify-center text-white font-black text-base shadow-md shadow-blue-600/25 group-hover:scale-105 transition-transform">
-                AI
-              </div>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-[#1A1D1F] dark:text-zinc-100 leading-tight">
-                  مخطط التسويق الذكي
-                </span>
-                <span className="text-[11px] font-medium text-[#575C61] dark:text-zinc-400 leading-none">
-                  محرك إدارة المحتوى لـ 30 يوماً
-                </span>
-              </div>
-            </Link>
+            <MadarLogo variant="full" size="md" />
 
             <span className="hidden lg:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-[#0B57D0] border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60">
               <Sparkles className="w-3 h-3 text-[#0B57D0] dark:text-blue-400" />
@@ -924,19 +913,7 @@ export default function LandingPageClient({ user = null }) {
       <footer className="py-12 border-t border-[#E4E7EC] dark:border-zinc-800/80 bg-white dark:bg-[#09090b] text-right">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-[#0B57D0] flex items-center justify-center text-white font-black text-sm shadow-sm">
-                AI
-              </div>
-              <div>
-                <div className="font-extrabold text-sm sm:text-base text-[#1A1D1F] dark:text-zinc-100">
-                  مخطط التسويق الذكي
-                </div>
-                <div className="text-xs text-[#575C61] dark:text-zinc-400">
-                  استراتيجية وتقويم محتوى إنستغرام لـ 30 يوماً
-                </div>
-              </div>
-            </div>
+            <MadarLogo variant="full" size="sm" subtitle="AI Content Planning" />
 
             <div className="flex flex-wrap items-center gap-6 text-xs font-semibold text-[#575C61] dark:text-zinc-400">
               <Link href="/dashboard" className="hover:text-[#0B57D0] dark:hover:text-zinc-100 transition-colors">
@@ -956,7 +933,7 @@ export default function LandingPageClient({ user = null }) {
 
           <div className="pt-6 border-t border-[#E4E7EC] dark:border-zinc-850 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#575C61] dark:text-zinc-500">
             <div>
-              © {new Date().getFullYear()} مخطط التسويق الذكي. جميع الحقوق محفوظة.
+              © {new Date().getFullYear()} MADAR (مدار). جميع الحقوق محفوظة.
             </div>
             <div>
               مدعوم بخوارزميات التخطيط التسويقي المتقدمة

@@ -35,11 +35,14 @@ import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
 import Textarea from "@/app/components/ui/Textarea";
 import Select from "@/app/components/ui/Select";
+import { useVoice } from "@/app/contexts/VoiceContext";
+import LoadingState from "@/app/components/ui/LoadingState";
 
 function PlanFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryBrandId = searchParams.get("brandId");
+  const { t } = useVoice();
 
   useEffect(() => {
     pingBackendHealth();
@@ -99,21 +102,22 @@ function PlanFormContent() {
           }
         }
       } catch (err) {
-        console.error("Failed to load brands:", err);
+        console.error("Failed to load saved brands:", err);
       } finally {
         setLoadingBrands(false);
       }
     }
+
     loadBrands();
   }, [queryBrandId, applyBrandToForm]);
 
   const handleBrandSelect = (e) => {
-    const bId = e.target.value;
-    if (!bId) {
-      handleClearBrand();
+    const brandId = e.target.value;
+    if (!brandId) {
+      setSelectedBrandId("");
       return;
     }
-    const brand = brands.find((b) => b.id === bId);
+    const brand = brands.find((b) => b.id === brandId);
     if (brand) {
       applyBrandToForm(brand);
     }
@@ -132,6 +136,7 @@ function PlanFormContent() {
       website_url: "",
       additional_context: "",
     });
+    setErrors({});
   };
 
   const handleInputChange = (field, value) => {
@@ -147,23 +152,20 @@ function PlanFormContent() {
 
   const toggleTone = (tone) => {
     setFormData((prev) => {
-      const current = prev.brand_tone || [];
-      let updated;
-      if (current.includes(tone)) {
-        updated = current.filter((t) => t !== tone);
-      } else {
-        if (current.length >= 3) {
-          return prev;
-        }
-        updated = [...current, tone];
+      const exists = prev.brand_tone.includes(tone);
+      if (exists) {
+        return { ...prev, brand_tone: prev.brand_tone.filter((t) => t !== tone) };
       }
-      return { ...prev, brand_tone: updated };
+      if (prev.brand_tone.length >= 3) {
+        return prev;
+      }
+      return { ...prev, brand_tone: [...prev.brand_tone, tone] };
     });
 
     if (errors.brand_tone) {
       setErrors((prev) => {
         const next = { ...prev };
-        delete next.brand_tone;
+        delete next[brand_tone];
         return next;
       });
     }
@@ -171,17 +173,16 @@ function PlanFormContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent double submission
     setServerError(null);
 
     const validation = validatePlanInput(formData);
     if (!validation.isValid) {
       setErrors(validation.errors);
-      const firstErrorKey = Object.keys(validation.errors)[0];
-      const element = document.getElementById(firstErrorKey);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
-        element.focus();
+      const firstErrorField = Object.keys(validation.errors)[0];
+      const el = document.getElementById(firstErrorField);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus();
       }
       return;
     }
@@ -189,13 +190,23 @@ function PlanFormContent() {
     setIsSubmitting(true);
 
     try {
+      const payload = {
+        product_name: formData.product_name.trim(),
+        product_description: formData.product_description.trim(),
+        product_category: formData.product_category,
+        target_audience: formData.target_audience.trim(),
+        problem_solved: formData.problem_solved.trim(),
+        marketing_objective: formData.marketing_objective,
+        brand_tone: formData.brand_tone,
+        website_url: formData.website_url.trim() || undefined,
+        additional_context: formData.additional_context.trim() || undefined,
+        brand_profile_id: selectedBrandId || undefined,
+      };
+
       const res = await fetch("/api/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          brand_profile_id: selectedBrandId || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
@@ -225,10 +236,10 @@ function PlanFormContent() {
         {/* Contextual Header */}
         <PageHeader
           backHref="/dashboard"
-          backLabel="العودة للوحة التحكم"
-          title="استوديو البريف الاستراتيجي"
-          description="زوّد المحرك الذكي بتفاصيل منتجك وجمهورك لبناء استراتيجية تموضع وتشخيص دقيق، وتوليد تقويم محتوى كامل لـ 30 يوماً وتصديره لـ Google Sheets."
-          badge={<Badge variant="blue">محرك التخطيط لـ 30 يوماً</Badge>}
+          backLabel={t("plans.new.backToDashboard")}
+          title={t("plans.new.headerTitle")}
+          description={t("plans.new.headerDescription")}
+          badge={<Badge variant="blue">{t("plans.new.badge")}</Badge>}
         />
 
         {/* Global Error Banner */}
@@ -254,10 +265,12 @@ function PlanFormContent() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-[#1A1D1F] dark:text-zinc-100 flex items-center gap-2">
-                      <span>ذاكرة البراند الذكية</span>
-                      <Badge variant="blue" size="sm">تعبئة فورية</Badge>
+                      <span>{t("plans.new.brandMemoryTitle")}</span>
+                      <Badge variant="blue" size="sm">{t("plans.new.brandMemoryBadge")}</Badge>
                     </h3>
-                    <p className="text-[11px] text-[#575C61] dark:text-zinc-400">استورد بيانات منتج محفوظ لتسريع التخطيط</p>
+                    <p className="text-[11px] text-[#575C61] dark:text-zinc-400">
+                      {t("plans.new.brandMemoryDesc")}
+                    </p>
                   </div>
                 </div>
 
@@ -266,7 +279,7 @@ function PlanFormContent() {
                   className="inline-flex items-center gap-1.5 text-xs text-[#0B57D0] hover:text-[#0842a0] dark:text-blue-400 dark:hover:text-blue-300 font-bold self-start sm:self-auto hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>إضافة براند جديد</span>
+                  <span>{t("plans.new.addBrand")}</span>
                 </Link>
               </div>
 
@@ -302,7 +315,7 @@ function PlanFormContent() {
                     startIcon={RotateCcw}
                     title="تفريغ الحقول والبدء يدوياً"
                   >
-                    تفريغ
+                    {t("plans.new.clearFields")}
                   </Button>
                 )}
               </div>
@@ -310,7 +323,7 @@ function PlanFormContent() {
               {selectedBrandId && (
                 <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/30 dark:border-emerald-800/50 p-3 rounded-xl">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>تم استيراد بيانات البراند تلقائياً. يمكنك تعديل أي تفاصيل أو اختيار هدف هذا الشهر أدناه.</span>
+                  <span>{t("plans.new.brandLoadedMsg")}</span>
                 </div>
               )}
             </Card>
@@ -322,8 +335,12 @@ function PlanFormContent() {
                   01
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">هوية المنتج والحل الجوهري</h2>
-                  <p className="text-xs text-[#575C61] dark:text-zinc-400">التفاصيل الأساسية لما تقوم بتسويقه وبيعه</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">
+                    {t("plans.new.step1Title")}
+                  </h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">
+                    {t("plans.new.step1Desc")}
+                  </p>
                 </div>
               </div>
 
@@ -385,8 +402,12 @@ function PlanFormContent() {
                   02
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">الجمهور والهدف التسويقي</h2>
-                  <p className="text-xs text-[#575C61] dark:text-zinc-400">فهم عميق لنفسية المشتري وتحديد بوصلة الشهر</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">
+                    {t("plans.new.step2Title")}
+                  </h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">
+                    {t("plans.new.step2Desc")}
+                  </p>
                 </div>
               </div>
 
@@ -429,8 +450,12 @@ function PlanFormContent() {
                   03
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">نبرة صوت المحتوى (Brand Tone)</h2>
-                  <p className="text-xs text-[#575C61] dark:text-zinc-400">اختر من 1 إلى 3 نبرات لتوجيه صياغة الكابشن والسيناريو</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">
+                    {t("plans.new.step3Title")}
+                  </h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">
+                    {t("plans.new.step3Desc")}
+                  </p>
                 </div>
               </div>
 
@@ -478,8 +503,12 @@ function PlanFormContent() {
                   04
                 </div>
                 <div>
-                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">الملاحظات التكتيكية وتوجيهات الـ CTA</h2>
-                  <p className="text-xs text-[#575C61] dark:text-zinc-400">تفاصيل إضافية لتخصيص الدعوة لاتخاذ إجراء والعروض الموسمية (اختياري)</p>
+                  <h2 className="text-base font-extrabold text-[#1A1D1F] dark:text-zinc-100">
+                    {t("plans.new.step4Title")}
+                  </h2>
+                  <p className="text-xs text-[#575C61] dark:text-zinc-400">
+                    {t("plans.new.step4Desc")}
+                  </p>
                 </div>
               </div>
 
@@ -520,7 +549,7 @@ function PlanFormContent() {
                 startIcon={Sparkles}
                 className="py-4 text-sm sm:text-base font-extrabold"
               >
-                {isSubmitting ? "جاري إعداد محرك التوليد والربط..." : "توليد خطة واستراتيجية الـ 30 يوماً"}
+                {isSubmitting ? t("plans.new.submittingBtn") : t("plans.new.submitBtn")}
               </Button>
               <p className="text-center text-xs text-[#575C61] dark:text-zinc-500 mt-3 leading-relaxed">
                 تستغرق عملية التحليل وبناء الاستراتيجية وتنسيق تقويم الـ 30 يوماً وتصدير Google Sheet من 60 إلى 90 ثانية.
@@ -582,9 +611,12 @@ export default function NewPlanPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white dark:bg-[#09090b] flex items-center justify-center text-[#1A1D1F] dark:text-zinc-100">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-        </div>
+        <LoadingState
+          variant="fullscreen"
+          size="md"
+          title="جاري تجهيز استمارة الخطة..."
+          subtitle="MADAR (مدار) يجهز معايير التحليل والاستراتيجية"
+        />
       }
     >
       <PlanFormContent />

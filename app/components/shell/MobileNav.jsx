@@ -14,9 +14,12 @@ import {
 } from "lucide-react";
 import SidebarItem from "./SidebarItem";
 import UserMenu from "./UserMenu";
+import MadarLogo from "@/app/components/ui/MadarLogo";
+import { useVoice } from "@/app/contexts/VoiceContext";
 
 export default function MobileNav({ user = null, brandCount = null }) {
   const pathname = usePathname();
+  const { t } = useVoice();
   const [isOpen, setIsOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {
@@ -47,16 +50,11 @@ export default function MobileNav({ user = null, brandCount = null }) {
   }, [isOpen]);
 
   return (
-    <div className="lg:hidden sticky top-0 z-40 bg-white/95 dark:bg-[#0c0c0f]/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800/80 text-right">
+    <>
       {/* Mobile Top Bar */}
-      <div className="px-4 h-14 flex items-center justify-between">
+      <header className="lg:hidden sticky top-0 z-40 bg-white dark:bg-[#0c0c0f] border-b border-zinc-200 dark:border-zinc-800/80 text-right px-4 h-14 flex items-center justify-between">
         {/* Brand */}
-        <Link href="/dashboard" className="flex items-center gap-2.5 font-extrabold text-sm text-zinc-900 dark:text-zinc-100">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xs shadow-sm">
-            AI
-          </div>
-          <span>مخطط التسويق الذكي</span>
-        </Link>
+        <MadarLogo href="/" variant="full" size="sm" />
 
         {/* Hamburger Toggle */}
         <button
@@ -68,12 +66,12 @@ export default function MobileNav({ user = null, brandCount = null }) {
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
-      </div>
+      </header>
 
       {/* Backdrop Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
+          className="lg:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition-opacity duration-200"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -82,8 +80,8 @@ export default function MobileNav({ user = null, brandCount = null }) {
       {/* Slide-out Drawer from Right (RTL) */}
       <div
         className={`
-          fixed top-0 bottom-0 right-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-[#0c0c0f] border-l border-zinc-200 dark:border-zinc-800 p-5 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-in-out text-right
-          ${isOpen ? "translate-x-0" : "translate-x-full"}
+          lg:hidden fixed top-0 bottom-0 right-0 z-50 w-72 max-w-[85vw] bg-white dark:bg-[#0c0c0f] border-l border-zinc-200 dark:border-zinc-800 p-5 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-in-out text-right
+          ${isOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"}
         `.trim()}
         role="dialog"
         aria-modal="true"
@@ -94,16 +92,12 @@ export default function MobileNav({ user = null, brandCount = null }) {
         <div className="space-y-6">
           {/* Drawer Header */}
           <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800/80">
-            <Link
-              href="/dashboard"
+            <MadarLogo
+              href="/"
+              variant="full"
+              size="sm"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 font-bold text-sm text-zinc-900 dark:text-zinc-100"
-            >
-              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-xs">
-                AI
-              </div>
-              <span>مخطط التسويق الذكي</span>
-            </Link>
+            />
 
             <button
               type="button"
@@ -118,12 +112,12 @@ export default function MobileNav({ user = null, brandCount = null }) {
           {/* Navigation Links */}
           <nav className="space-y-1.5" aria-label="تنقل الجوال">
             <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-              مساحة العمل
+              {t("common.nav.workspace")}
             </div>
 
             <SidebarItem
               href="/dashboard"
-              label="لوحة التحكم والخطط"
+              label={t("common.nav.dashboard")}
               icon={LayoutDashboard}
               exact={true}
               onClick={() => setIsOpen(false)}
@@ -131,7 +125,7 @@ export default function MobileNav({ user = null, brandCount = null }) {
 
             <SidebarItem
               href="/plans/new"
-              label="إنشاء خطة تسويقية"
+              label={t("common.nav.newPlan")}
               icon={PlusCircle}
               exact={true}
               onClick={() => setIsOpen(false)}
@@ -139,19 +133,19 @@ export default function MobileNav({ user = null, brandCount = null }) {
 
             <SidebarItem
               href="/brands"
-              label="ملفات البراند والذاكرة"
+              label={t("common.nav.brands")}
               icon={Building2}
               badge={brandCount}
               onClick={() => setIsOpen(false)}
             />
 
             <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-              عام
+              {t("common.nav.general")}
             </div>
 
             <SidebarItem
               href="/settings"
-              label="الإعدادات"
+              label={t("common.nav.settings")}
               icon={Settings}
               exact={true}
               onClick={() => setIsOpen(false)}
@@ -162,19 +156,19 @@ export default function MobileNav({ user = null, brandCount = null }) {
           <div className="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/60 space-y-1.5">
             <div className="flex items-center gap-1.5 text-xs font-bold text-blue-500 dark:text-blue-400">
               <Compass className="w-3.5 h-3.5" />
-              <span>ذكاء التخطيط لـ 30 يوماً</span>
+              <span>{t("common.nav.engineBadge")}</span>
             </div>
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              تحليل الجمهور والتموضع وتنسيق جداول النشر وتصدير Google Sheet.
+              {t("common.nav.engineDesc")}
             </p>
           </div>
         </div>
 
-        {/* Drawer Footer User Menu */}
+        {/* Drawer Footer with UserMenu */}
         <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800/80">
           <UserMenu user={user} />
         </div>
       </div>
-    </div>
+    </>
   );
 }

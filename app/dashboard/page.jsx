@@ -4,8 +4,8 @@ import { supabaseAdmin, getCanonicalUserId } from "@/lib/supabase-admin";
 import DashboardClient from "./DashboardClient";
 
 export const metadata = {
-  title: "لوحة التحكم - مخطط التسويق الذكي",
-  description: "إدارة وإنشاء خطط محتوى إنستغرام لـ 30 يوماً بالذكاء الاصطناعي.",
+  title: "لوحة التحكم",
+  description: "إدارة وإنشاء خطط محتوى إنستغرام لـ 30 يوماً بالذكاء الاصطناعي مع MADAR.",
 };
 
 export default async function DashboardPage() {

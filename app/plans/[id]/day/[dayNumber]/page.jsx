@@ -1,8 +1,8 @@
 "use client";
 
 import { use, Suspense } from "react";
-import { Loader2 } from "lucide-react";
 import DayDetailClient from "./DayDetailClient";
+import LoadingState from "@/app/components/ui/LoadingState";
 
 export default function DayDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -12,9 +12,12 @@ export default function DayDetailPage({ params }) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white dark:bg-[#09090b] flex items-center justify-center text-[#1A1D1F] dark:text-zinc-100">
-          <Loader2 className="w-8 h-8 text-[#0B57D0] animate-spin" />
-        </div>
+        <LoadingState
+          variant="fullscreen"
+          size="md"
+          title={`جاري تجهيز تفاصيل اليوم ${dayNumber}...`}
+          subtitle="MADAR (مدار) يجهز نصوص وصور المنشور"
+        />
       }
     >
       <DayDetailClient planId={planId} dayNumber={dayNumber} />

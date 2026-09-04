@@ -9,9 +9,20 @@ const readex = Readex_Pro({
 });
 
 export const metadata = {
-  title: "مخطط التسويق الذكي — خطة تسويق شهرية بالذكاء الاصطناعي لإنستغرام",
+  title: {
+    default: "MADAR - AI Content Planning",
+    template: "%s | MADAR - AI Content Planning",
+  },
   description:
-    "حوّل وصف منتجك إلى استراتيجية تسويقية متكاملة لـ 30 يوماً على إنستغرام تشمل نصوص المنشورات، نصوص التصاميم، التوجيه البصري، وتصدير ملف Google Sheet احترافي.",
+    "MADAR (مدار) — منصة التخطيط الذكي للمحتوى وصناعة استراتيجيات إنستغرام لـ 30 يوماً بالذكاء الاصطناعي مع تصدير جداول البيانات الاحترافية.",
+  icons: {
+    icon: [
+      { url: "/brand/madar-circular-icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/brand/madar-circular-icon.png",
+  },
 };
 
 /**

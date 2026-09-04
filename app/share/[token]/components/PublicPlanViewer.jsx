@@ -22,6 +22,7 @@ import PillarCards from "@/app/plans/[id]/components/PillarCards";
 import ContentItemCard from "@/app/plans/[id]/components/ContentItemCard";
 import PlanCalendarView from "@/app/plans/[id]/components/calendar/PlanCalendarView";
 import ContentMixInsights from "@/app/plans/[id]/components/ContentMixInsights";
+import LoadingState from "@/app/components/ui/LoadingState";
 
 export default function PublicPlanViewer({ token }) {
   const [loading, setLoading] = useState(true);
@@ -65,11 +66,12 @@ export default function PublicPlanViewer({ token }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center text-[#1A1D1F] dark:text-zinc-100 space-y-4 p-4">
-        <Loader2 className="w-10 h-10 text-[#0B57D0] animate-spin" />
-        <p className="text-base font-bold">جاري تحميل الخطة التسويقية العامة...</p>
-        <p className="text-xs text-[#575C61] dark:text-zinc-400">يرجى الانتظار بضع لحظات</p>
-      </div>
+      <LoadingState
+        variant="fullscreen"
+        size="lg"
+        title="جاري تجهيز الخطة التسويقية العامة..."
+        subtitle="MADAR (مدار) يعرض الاستراتيجية وتقويم المنشورات"
+      />
     );
   }
 

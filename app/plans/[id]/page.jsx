@@ -37,12 +37,15 @@ import { detectStrategicWarnings } from "@/lib/strategic-warnings";
 import { computeStrategyConfidenceScore } from "@/lib/strategic-rationale";
 import { pingBackendHealth } from "@/lib/backend-health";
 import AppShell from "@/app/components/shell/AppShell";
+import { useVoice } from "@/app/contexts/VoiceContext";
+import LoadingState from "@/app/components/ui/LoadingState";
 
 export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
   const planId = resolvedParams.id;
   const router = useRouter();
   const { data: session } = useSession();
+  const { t } = useVoice();
 
   useEffect(() => {
     pingBackendHealth();
@@ -260,11 +263,12 @@ export default function PlanDetailPage({ params }) {
     <AppShell user={session?.user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         {loading ? (
-          <div className="text-center py-24 space-y-4 max-w-md mx-auto">
-            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto" />
-            <p className="text-base font-bold text-[#1A1D1F] dark:text-zinc-100">جاري تحميل بيانات الخطة التسويقية...</p>
-            <p className="text-xs text-[#575C61] dark:text-zinc-400">يرجى الانتظار بضع لحظات</p>
-          </div>
+          <LoadingState
+            variant="card"
+            size="lg"
+            title="جاري قراءة وتحليل بيانات الخطة التسويقية..."
+            subtitle="MADAR (مدار) يستحضر التشخيص الاستراتيجي وتقويم المحتوى"
+          />
         ) : error ? (
           <div className="p-8 rounded-2xl bg-red-50 border border-red-200 dark:bg-zinc-900 dark:border-red-800/80 text-center space-y-4 max-w-2xl mx-auto my-12">
             <AlertCircle className="w-10 h-10 text-red-500 dark:text-red-400 mx-auto" />
@@ -318,7 +322,7 @@ export default function PlanDetailPage({ params }) {
                   <>
                     <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800/60 dark:text-emerald-300 text-xs font-bold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>الخطة مكتملة</span>
+                      <span>{t("plans.detail.completedBadge")}</span>
                     </span>
 
                     <button
@@ -327,7 +331,7 @@ export default function PlanDetailPage({ params }) {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0B57D0] hover:bg-[#0842a0] text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
                     >
                       <Share2 className="w-4 h-4" />
-                      <span>مشاركة الخطة مع العميل</span>
+                      <span>{t("plans.detail.sharePlan")}</span>
                     </button>
 
                     {sheetUrl && (
@@ -338,7 +342,7 @@ export default function PlanDetailPage({ params }) {
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition-all shadow-sm"
                       >
                         <FileSpreadsheet className="w-4 h-4" />
-                        <span>فتح Google Sheet</span>
+                        <span>{t("plans.detail.openSheet")}</span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
@@ -346,12 +350,12 @@ export default function PlanDetailPage({ params }) {
                 ) : isFailed ? (
                   <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/60 dark:border-red-800/60 dark:text-red-300 text-xs font-bold">
                     <AlertCircle className="w-4 h-4" />
-                    <span>تعثرت عملية التوليد</span>
+                    <span>{t("plans.detail.failedBadge")}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0B57D0] dark:bg-blue-950/60 dark:border-blue-800/60 dark:text-blue-300 text-xs font-bold animate-pulse">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>جاري التوليد بواسطة AI...</span>
+                    <span>{t("plans.detail.generatingBadge")}</span>
                   </span>
                 )}
               </div>
@@ -380,7 +384,7 @@ export default function PlanDetailPage({ params }) {
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
                   >
                     {isRetrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                    <span>إعادة محاولة التوليد الآن</span>
+                    <span>{t("plans.detail.retryBtn")}</span>
                   </button>
                 </div>
               </div>
@@ -411,7 +415,7 @@ export default function PlanDetailPage({ params }) {
                       ) : (
                         <XCircle className="w-3.5 h-3.5" />
                       )}
-                      <span>{isCancelling ? "جاري الإلغاء..." : "إلغاء والبدء من جديد"}</span>
+                      <span>{isCancelling ? "جاري الإلغاء..." : t("plans.detail.cancelBtn")}</span>
                     </button>
                   </div>
                 </div>
@@ -473,7 +477,7 @@ export default function PlanDetailPage({ params }) {
                     }`}
                   >
                     <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>التشخيص الاستراتيجي (Diagnosis)</span>
+                    <span>{t("plans.detail.tabDiagnosis")}</span>
                   </button>
 
                   <button
@@ -486,7 +490,7 @@ export default function PlanDetailPage({ params }) {
                     }`}
                   >
                     <Calendar className="w-4 h-4" />
-                    <span>تقويم الـ 30 يوماً ({allContentItems.length})</span>
+                    <span>{t("plans.detail.tabCalendar")} ({allContentItems.length})</span>
                   </button>
 
                   <button
@@ -499,7 +503,7 @@ export default function PlanDetailPage({ params }) {
                     }`}
                   >
                     <Compass className="w-4 h-4" />
-                    <span>تحليلات توزيع المحتوى</span>
+                    <span>{t("plans.detail.tabInsights")}</span>
                   </button>
 
                   <button
@@ -512,7 +516,7 @@ export default function PlanDetailPage({ params }) {
                     }`}
                   >
                     <Target className="w-4 h-4" />
-                    <span>ملخص الاستراتيجية والجمهور</span>
+                    <span>{t("plans.detail.tabStrategy")}</span>
                   </button>
 
                   <button
@@ -524,7 +528,7 @@ export default function PlanDetailPage({ params }) {
                         : "bg-[#F8F9FB] border border-[#E4E7EC] text-[#575C61] hover:bg-[#F0F4F8] hover:text-[#1A1D1F] dark:bg-zinc-900 dark:border-transparent dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     }`}
                   >
-                    <span>محاور المحتوى</span>
+                    <span>{t("plans.detail.tabPillars")}</span>
                   </button>
                 </div>
 

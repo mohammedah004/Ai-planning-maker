@@ -9,6 +9,7 @@ import DayContentBrief from "./components/DayContentBrief";
 import RelatedDaysNav from "./components/RelatedDaysNav";
 import RegenerateModal from "@/app/plans/[id]/components/RegenerateModal";
 import Button from "@/app/components/ui/Button";
+import LoadingState from "@/app/components/ui/LoadingState";
 
 export default function DayDetailClient({ planId, dayNumber }) {
   const [loading, setLoading] = useState(true);
@@ -69,13 +70,12 @@ export default function DayDetailClient({ planId, dayNumber }) {
     <AppShell>
       <div className="w-full max-w-5xl mx-auto space-y-8 text-right">
         {loading ? (
-          <div className="text-center py-24 space-y-4 max-w-md mx-auto">
-            <Loader2 className="w-10 h-10 text-[#0B57D0] animate-spin mx-auto" />
-            <p className="text-base font-bold text-[#1A1D1F] dark:text-zinc-100">
-              جاري تجهيز بريف اليوم {dayNumber}...
-            </p>
-            <p className="text-xs text-[#575C61] dark:text-zinc-400">يرجى الانتظار بضع لحظات</p>
-          </div>
+          <LoadingState
+            variant="card"
+            size="md"
+            title={`جاري تجهيز بريف اليوم ${dayNumber}...`}
+            subtitle="MADAR (مدار) يستخرج نصوص التصاميم والتوجيه البصري"
+          />
         ) : error ? (
           <div className="p-8 sm:p-10 rounded-3xl bg-red-50 border border-red-200 text-center space-y-4 max-w-xl mx-auto my-12 shadow-md dark:bg-[#131316] dark:border-red-800/80 dark:shadow-2xl">
             <AlertCircle className="w-10 h-10 text-red-500 dark:text-red-400 mx-auto" />

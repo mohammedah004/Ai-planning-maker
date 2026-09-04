@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import SettingsClient from "./SettingsClient";
 
 export const metadata = {
-  title: "الإعدادات - مخطط التسويق الذكي",
-  description: "إدارة إعدادات حساب المستخدم والمظهر والتفضيلات.",
+  title: "الإعدادات",
+  description: "إدارة إعدادات حساب المستخدم والمظهر والتفضيلات في MADAR.",
 };
 
 /**
