@@ -3,12 +3,14 @@ import clearDashboard from "./clear/dashboard.js";
 import clearPlans from "./clear/plans.js";
 import clearBrands from "./clear/brands.js";
 import clearSettings from "./clear/settings.js";
+import clearAuth from "./clear/auth.js";
 
 import friendlyCommon from "./friendly/common.js";
 import friendlyDashboard from "./friendly/dashboard.js";
 import friendlyPlans from "./friendly/plans.js";
 import friendlyBrands from "./friendly/brands.js";
 import friendlySettings from "./friendly/settings.js";
+import friendlyAuth from "./friendly/auth.js";
 
 const dictionaries = {
   clear: {
@@ -17,6 +19,7 @@ const dictionaries = {
     plans: clearPlans,
     brands: clearBrands,
     settings: clearSettings,
+    auth: clearAuth,
   },
   friendly: {
     common: friendlyCommon,
@@ -24,6 +27,7 @@ const dictionaries = {
     plans: friendlyPlans,
     brands: friendlyBrands,
     settings: friendlySettings,
+    auth: friendlyAuth,
   },
 };
 

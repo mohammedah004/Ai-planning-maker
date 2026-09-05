@@ -41,6 +41,7 @@ import { pingBackendHealth } from "@/lib/backend-health";
 import AppShell from "@/app/components/shell/AppShell";
 import { useVoice } from "@/app/contexts/VoiceContext";
 import LoadingState from "@/app/components/ui/LoadingState";
+import GenerationInsightCard from "@/app/components/plans/GenerationInsightCard";
 
 export default function PlanDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -195,41 +196,106 @@ export default function PlanDetailPage({ params }) {
     }
   };
 
-  const steps = [
-    {
-      id: "strategy",
-      label: "المرحلة 1: التشخيص الاستراتيجي والجمهور",
-      description: "تشخيص مرحلة النضج، استخراج نقاط الألم، والتموضع الفريد",
-      activeStates: ["generating_strategy"],
-      completedStates: ["generating_pillars", "generating_content", "exporting_sheet", "completed"],
-    },
-    {
-      id: "pillars",
-      label: "المرحلة 2: محاور المحتوى وتوزيع الأهداف",
-      description: "موازنة أهداف التوعية، التعليم، الثقة، التفاعل، والمبيعات",
-      activeStates: ["generating_pillars"],
-      completedStates: ["generating_content", "exporting_sheet", "completed"],
-    },
-    {
-      id: "content",
-      label: "المرحلة 3: تقويم منشورات إنستغرام لـ 30 يوماً",
-      description: "صياغة الكابشن اليومي، نصوص التصاميم المقسمة، والتوجيه البصري",
-      activeStates: ["generating_content"],
-      completedStates: ["exporting_sheet", "completed"],
-    },
-    {
-      id: "export",
-      label: "المرحلة 4: تصدير وتنسيق Google Sheet",
-      description: "إنشاء ملف منظم بتبويبين مع تجميد الترويسة والتنسيق اللوني",
-      activeStates: ["exporting_sheet"],
-      completedStates: ["completed"],
-    },
-  ];
+  const steps = useMemo(
+    () => [
+      {
+        id: "strategy",
+        label: t("plans.detail.stages.strategy.title", "المرحلة 1: التشخيص الاستراتيجي والجمهور"),
+        description: t("plans.detail.stages.strategy.description", "تشخيص مرحلة النضج، استخراج نقاط الألم، والتموضع الفريد"),
+        activeStates: ["generating_strategy"],
+        completedStates: ["generating_pillars", "generating_content", "exporting_sheet", "completed"],
+      },
+      {
+        id: "pillars",
+        label: t("plans.detail.stages.pillars.title", "المرحلة 2: محاور المحتوى وتوزيع الأهداف"),
+        description: t("plans.detail.stages.pillars.description", "موازنة أهداف التوعية، التعليم، الثقة، التفاعل، والمبيعات"),
+        activeStates: ["generating_pillars"],
+        completedStates: ["generating_content", "exporting_sheet", "completed"],
+      },
+      {
+        id: "content",
+        label: t("plans.detail.stages.content.title", "المرحلة 3: تقويم منشورات إنستغرام لـ 30 يوماً"),
+        description: t("plans.detail.stages.content.description", "صياغة الكابشن اليومي، نصوص التصاميم المقسمة، والتوجيه البصري"),
+        activeStates: ["generating_content"],
+        completedStates: ["exporting_sheet", "completed"],
+      },
+      {
+        id: "export",
+        label: t("plans.detail.stages.export.title", "المرحلة 4: تصدير وتنسيق Google Sheet"),
+        description: t("plans.detail.stages.export.description", "إنشاء ملف منظم بتبويبين مع تجميد الترويسة والتنسيق اللوني"),
+        activeStates: ["exporting_sheet"],
+        completedStates: ["completed"],
+      },
+    ],
+    [t]
+  );
 
   const currentJobStatus = statusData?.job?.status || statusData?.plan?.status || "queued";
   const isCompleted = statusData?.plan?.status === "completed" || currentJobStatus === "completed";
   const isFailed = statusData?.plan?.status === "failed" || currentJobStatus === "failed";
   const sheetUrl = statusData?.export?.spreadsheet_url || contentData?.plan?.sheetUrl;
+
+  // Approximate Weighted Progress Bar Calculation (Part A)
+  const [approxProgress, setApproxProgress] = useState(0);
+  const highestProgressRef = useRef(0);
+  const stageEnteredTimeRef = useRef({ stage: null, timestamp: Date.now() });
+
+  const STAGE_CONFIG = useMemo(
+    () => ({
+      queued: { min: 0, max: 10, expectedSec: 20, cumulativeStart: 0 },
+      generating_strategy: { min: 0, max: 10, expectedSec: 20, cumulativeStart: 0 },
+      generating_pillars: { min: 10, max: 20, expectedSec: 20, cumulativeStart: 20 },
+      generating_content: { min: 20, max: 75, expectedSec: 140, cumulativeStart: 40 },
+      exporting_sheet: { min: 75, max: 100, expectedSec: 50, cumulativeStart: 180 },
+      completed: { min: 100, max: 100, expectedSec: 0, cumulativeStart: 230 },
+    }),
+    []
+  );
+
+  useEffect(() => {
+    if (isCompleted) {
+      setApproxProgress(100);
+      highestProgressRef.current = 100;
+      return;
+    }
+
+    if (isFailed) return;
+
+    // Track stage transition
+    if (stageEnteredTimeRef.current.stage !== currentJobStatus) {
+      stageEnteredTimeRef.current = { stage: currentJobStatus, timestamp: Date.now() };
+    }
+
+    const updateProgress = () => {
+      const config = STAGE_CONFIG[currentJobStatus] || STAGE_CONFIG.generating_strategy;
+      const startedAt = statusData?.job?.started_at;
+      const now = Date.now();
+
+      let elapsedInStage = (now - stageEnteredTimeRef.current.timestamp) / 1000;
+
+      if (startedAt) {
+        const jobStartTime = new Date(startedAt).getTime();
+        const totalElapsedSec = Math.max(0, (now - jobStartTime) / 1000);
+        const elapsedSinceCumulative = Math.max(0, totalElapsedSec - config.cumulativeStart);
+        elapsedInStage = Math.max(elapsedInStage, elapsedSinceCumulative);
+      }
+
+      const fraction = config.expectedSec > 0 ? Math.min(elapsedInStage / config.expectedSec, 1) : 1;
+      const stageSpan = config.max - config.min;
+      // Cap at 95% of stage's share until next step starts
+      const stageProgress = fraction * (stageSpan * 0.95);
+      const calculated = config.min + stageProgress;
+
+      // Monotonic guarantee: never go backwards and never exceed 99% before completion
+      const capped = Math.min(99, Math.max(highestProgressRef.current, calculated));
+      highestProgressRef.current = capped;
+      setApproxProgress(Math.round(capped));
+    };
+
+    updateProgress();
+    const timer = setInterval(updateProgress, 1000);
+    return () => clearInterval(timer);
+  }, [currentJobStatus, isCompleted, isFailed, statusData?.job?.started_at, STAGE_CONFIG]);
 
   const planInfo = useMemo(() => {
     return contentData?.plan || statusData?.plan || {};
@@ -498,73 +564,102 @@ export default function PlanDetailPage({ params }) {
 
             {/* In-Progress Live Timeline */}
             {!isCompleted && !isFailed && (
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs space-y-6 text-right max-w-3xl mx-auto">
-                <div className="flex items-center justify-between pb-4 border-b border-[#E4E7EC] dark:border-zinc-800">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-400">مراحل المحرك الذكي</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-[#0B57D0] dark:text-blue-400 flex items-center gap-1.5 font-bold">
-                      <Clock className="w-3.5 h-3.5 animate-spin" />
-                      <span>{statusData?.job?.current_step || "جاري التنفيذ في الخلفية..."}</span>
-                    </span>
-                    <button
-                      id="cancel-plan-btn"
-                      onClick={() => {
-                        setCancelError(null);
-                        setShowCancelModal(true);
-                      }}
-                      disabled={isCancelling}
-                      title="إلغاء عملية التوليد"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E4E7EC] hover:bg-red-50 hover:border-red-200 text-red-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-red-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {isCancelling ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <XCircle className="w-3.5 h-3.5" />
-                      )}
-                      <span>{isCancelling ? "جاري الإلغاء..." : t("plans.detail.cancelBtn")}</span>
-                    </button>
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="p-6 sm:p-8 rounded-2xl bg-[#F8F9FB] dark:bg-zinc-900 border border-[#E4E7EC] dark:border-zinc-800/80 shadow-xs space-y-6 text-right">
+                  <div className="flex items-center justify-between pb-4 border-b border-[#E4E7EC] dark:border-zinc-800">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#575C61] dark:text-zinc-400">مراحل المحرك الذكي</h3>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-[#0B57D0] dark:text-blue-400 flex items-center gap-1.5 font-bold">
+                        <Clock className="w-3.5 h-3.5 animate-spin" />
+                        <span>{statusData?.job?.current_step || "جاري التنفيذ في الخلفية..."}</span>
+                      </span>
+                      <button
+                        id="cancel-plan-btn"
+                        onClick={() => {
+                          setCancelError(null);
+                          setShowCancelModal(true);
+                        }}
+                        disabled={isCancelling}
+                        title="إلغاء عملية التوليد"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E4E7EC] hover:bg-red-50 hover:border-red-200 text-red-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-red-400 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {isCancelling ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <XCircle className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isCancelling ? "جاري الإلغاء..." : t("plans.detail.cancelBtn")}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Approximate Weighted Progress Bar (Part A) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#0B57D0] dark:text-blue-400 font-extrabold flex items-center gap-1">
+                        <span>{approxProgress}%</span>
+                        <span className="text-[11px] font-normal text-[#575C61] dark:text-zinc-400">
+                          (تقديري)
+                        </span>
+                      </span>
+                      <span className="text-[#575C61] dark:text-zinc-400 font-medium text-[11px]">
+                        معدل التقدم التقريبي
+                      </span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#0B57D0] to-blue-500 rounded-full transition-all duration-500"
+                        style={{ width: `${approxProgress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {steps.map((step, idx) => {
+                      const isActive = step.activeStates.includes(currentJobStatus);
+                      const isDone = isCompleted || step.completedStates.includes(currentJobStatus);
+
+                      return (
+                        <div key={step.id} className="flex items-start gap-4">
+                          <div className="shrink-0 mt-0.5">
+                            {isDone ? (
+                              <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-600 dark:bg-emerald-950/80 dark:border-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                <CheckCircle2 className="w-4 h-4" />
+                              </div>
+                            ) : isActive ? (
+                              <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-300 text-[#0B57D0] dark:bg-blue-950/80 dark:border-blue-500 dark:text-blue-400 flex items-center justify-center animate-pulse">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              </div>
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-white border border-[#E4E7EC] text-[#575C61] dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-600 flex items-center justify-center text-xs font-bold">
+                                {idx + 1}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <h4
+                                className={`text-sm font-bold ${
+                                  isDone ? "text-[#1A1D1F] dark:text-zinc-200" : isActive ? "text-[#0B57D0] dark:text-blue-400 font-extrabold" : "text-[#575C61] dark:text-zinc-500"
+                                }`}
+                              >
+                                {step.label}
+                              </h4>
+                            </div>
+                            <p className="text-xs text-[#575C61] dark:text-zinc-400 leading-relaxed">{step.description}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  {steps.map((step, idx) => {
-                    const isActive = step.activeStates.includes(currentJobStatus);
-                    const isDone = isCompleted || step.completedStates.includes(currentJobStatus);
-
-                    return (
-                      <div key={step.id} className="flex items-start gap-4">
-                        <div className="shrink-0 mt-0.5">
-                          {isDone ? (
-                            <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-600 dark:bg-emerald-950/80 dark:border-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                              <CheckCircle2 className="w-4 h-4" />
-                            </div>
-                          ) : isActive ? (
-                            <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-300 text-[#0B57D0] dark:bg-blue-950/80 dark:border-blue-500 dark:text-blue-400 flex items-center justify-center animate-pulse">
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            </div>
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-white border border-[#E4E7EC] text-[#575C61] dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-600 flex items-center justify-center text-xs font-bold">
-                              {idx + 1}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <h4
-                              className={`text-sm font-bold ${
-                                isDone ? "text-[#1A1D1F] dark:text-zinc-200" : isActive ? "text-[#0B57D0] dark:text-blue-400 font-extrabold" : "text-[#575C61] dark:text-zinc-500"
-                              }`}
-                            >
-                              {step.label}
-                            </h4>
-                          </div>
-                          <p className="text-xs text-[#575C61] dark:text-zinc-400 leading-relaxed">{step.description}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                {/* Rotating Insight Cards (Part B) */}
+                <GenerationInsightCard
+                  currentStep={currentJobStatus}
+                  productCategory={planInfo.productCategory || planInfo.product_category}
+                />
               </div>
             )}
 
