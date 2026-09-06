@@ -80,8 +80,8 @@ export default function PlanDetailPage({ params }) {
     setLoadingContent(true);
     try {
       const res = await fetch(`/api/plans/${planId}/content`);
-      const json = await res.json();
-      if (json.success && json.data) {
+      const json = await res.json().catch(() => null);
+      if (json?.success && json?.data) {
         setContentData(json.data);
       } else {
         contentLoadedRef.current = false;
@@ -100,12 +100,25 @@ export default function PlanDetailPage({ params }) {
     async function getInitialStatus() {
       try {
         const res = await fetch(`/api/plans/${planId}/status`);
-        const json = await res.json();
+        if (!res.ok) {
+          if (!isMounted) return;
+          if (res.status === 404) {
+            setError("الخطة المطلوبة غير موجودة أو تم حذفها.");
+          } else if (res.status === 401) {
+            setError("انتهت جلستك. يرجى تسجيل الدخول مجددًا.");
+          } else {
+            setError("تعذر جلب تفاصيل الخطة.");
+          }
+          setLoading(false);
+          return;
+        }
+
+        const json = await res.json().catch(() => null);
 
         if (!isMounted) return;
 
-        if (!res.ok || !json.success) {
-          setError(json.error?.message || "تعذر جلب تفاصيل الخطة.");
+        if (!json || !json.success) {
+          setError(json?.error?.message || "تعذر جلب تفاصيل الخطة.");
           setLoading(false);
           return;
         }
@@ -129,8 +142,18 @@ export default function PlanDetailPage({ params }) {
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`/api/plans/${planId}/status`);
-        const json = await res.json();
-        if (isMounted && json.success) {
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 404) {
+            clearInterval(interval);
+            if (isMounted) {
+              setError(res.status === 404 ? "الخطة المطلوبة غير موجودة." : "يرجى تسجيل الدخول.");
+            }
+          }
+          return;
+        }
+
+        const json = await res.json().catch(() => null);
+        if (isMounted && json?.success) {
           setStatusData(json.data);
           if (json.data?.plan?.status === "completed" || json.data?.job?.status === "completed") {
             clearInterval(interval);
@@ -154,14 +177,14 @@ export default function PlanDetailPage({ params }) {
     setIsRetrying(true);
     try {
       const res = await fetch(`/api/plans/${planId}/retry`, { method: "POST" });
-      const json = await res.json();
-      if (json.success) {
+      const json = await res.json().catch(() => null);
+      if (json?.success) {
         setError(null);
         const resPoll = await fetch(`/api/plans/${planId}/status`);
-        const jsonPoll = await resPoll.json();
-        if (jsonPoll.success) setStatusData(jsonPoll.data);
+        const jsonPoll = await resPoll.json().catch(() => null);
+        if (jsonPoll?.success) setStatusData(jsonPoll.data);
       } else {
-        setError(json.error?.message || "تعذرت إعادة محاولة التوليد.");
+        setError(json?.error?.message || "تعذرت إعادة محاولة التوليد.");
       }
     } catch (err) {
       console.error("Retry error:", err);
@@ -326,8 +349,9 @@ export default function PlanDetailPage({ params }) {
     const syncPollInterval = setInterval(async () => {
       try {
         const res = await fetch(`/api/plans/${planId}/status`);
-        const json = await res.json();
-        if (json.success && json.data) {
+        if (!res.ok) return;
+        const json = await res.json().catch(() => null);
+        if (json?.success && json?.data) {
           setStatusData(json.data);
         }
       } catch (e) {
@@ -342,11 +366,11 @@ export default function PlanDetailPage({ params }) {
     setIsRetryingSync(true);
     try {
       const res = await fetch(`/api/plans/${planId}/retry-export`, { method: "POST" });
-      const json = await res.json();
-      if (json.success) {
+      const json = await res.json().catch(() => null);
+      if (json?.success) {
         const resPoll = await fetch(`/api/plans/${planId}/status`);
-        const jsonPoll = await resPoll.json();
-        if (jsonPoll.success) setStatusData(jsonPoll.data);
+        const jsonPoll = await resPoll.json().catch(() => null);
+        if (jsonPoll?.success) setStatusData(jsonPoll.data);
       }
     } catch (err) {
       console.error("Retry sheet sync error:", err);

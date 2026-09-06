@@ -87,7 +87,7 @@ export default function MobileNav({ user = null, brandCount = null }) {
         aria-modal="true"
         aria-label="قائمة التنقل المحمولة"
         aria-hidden={!isOpen}
-        inert={!isOpen ? "" : undefined}
+        inert={!isOpen ? true : undefined}
       >
         <div className="space-y-6">
           {/* Drawer Header */}

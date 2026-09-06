@@ -193,12 +193,12 @@ BEGIN
     );
   END IF;
 
-  -- 4. Field-level merge for design_copy
-  v_merged_design_copy := jsonb_build_object(
-    'headline', COALESCE(p_changes->'design_copy'->>'headline', v_current.design_copy->>'headline', ''),
-    'subtext',  COALESCE(p_changes->'design_copy'->>'subtext',  v_current.design_copy->>'subtext', ''),
-    'cta',      COALESCE(p_changes->'design_copy'->>'cta',      v_current.design_copy->>'cta', '')
-  );
+  -- 4. Field-level merge for design_copy (preserves structured slides/scenes/generation_source)
+  IF p_changes ? 'design_copy' THEN
+    v_merged_design_copy := COALESCE(v_current.design_copy, '{}'::jsonb) || COALESCE(p_changes->'design_copy', '{}'::jsonb);
+  ELSE
+    v_merged_design_copy := v_current.design_copy;
+  END IF;
 
   -- 5. Build previous_state snapshot
   v_snapshot := jsonb_build_object(
@@ -355,12 +355,12 @@ BEGIN
     FROM public.content_items
     WHERE marketing_plan_id = p_plan_id AND day_number = v_day AND user_id = p_user_id;
 
-    -- Field-level merge for design_copy
-    v_merged_design_copy := jsonb_build_object(
-      'headline', COALESCE(v_changes->'design_copy'->>'headline', v_current.design_copy->>'headline', ''),
-      'subtext',  COALESCE(v_changes->'design_copy'->>'subtext',  v_current.design_copy->>'subtext', ''),
-      'cta',      COALESCE(v_changes->'design_copy'->>'cta',      v_current.design_copy->>'cta', '')
-    );
+    -- Field-level merge for design_copy (preserves structured slides/scenes/generation_source)
+    IF v_changes ? 'design_copy' THEN
+      v_merged_design_copy := COALESCE(v_current.design_copy, '{}'::jsonb) || COALESCE(v_changes->'design_copy', '{}'::jsonb);
+    ELSE
+      v_merged_design_copy := v_current.design_copy;
+    END IF;
 
     v_snapshot := jsonb_build_object(
       'snapshot_version', 1,

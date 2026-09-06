@@ -162,24 +162,20 @@ export async function POST(request, { params }) {
     const targetObjective = requestedObjective || currentItem.content_objective || "awareness";
     const targetPillar = currentItem.content_pillar || (parsedPillars[0]?.name || "الأساس التسويقي");
 
+    const formatInstructions =
+      targetPostType === "carousel"
+        ? `\nقواعد قالب الكاروسيل: يجب أن يحتوي design_copy على مصفوفة slides تضم من 3 إلى 8 شرائح (order متسلسل يبدأ من 1، headline، subtext، visual_note، slide_cta). لا تضمن scenes.`
+        : targetPostType === "reel"
+        ? `\nقواعد قالب الريلز: يجب أن يحتوي design_copy على مصفوفة scenes تضم من 3 إلى 6 مشاهد (order متسلسل يبدأ من 1، duration_sec، action_type، visual_direction، on_screen_text، voiceover) مع hook_line و total_duration_sec. لا تضمن slides.`
+        : `\nقواعد القالب الثابت/الستوري: يحتوي design_copy على headline و subtext و cta فقط دون slides أو scenes.`;
+
     const systemPrompt = `أنت خبير استراتيجي أول في التسويق بالمحتوى وكتابة الإعلانات على إنستغرام.
 مهمتك: إعادة صياغة وتوليد منشور واحد محدد لليوم رقم (${dayNumber}) ضمن خطة تسويقية لـ 30 يوماً.
 يجب الحفاظ على التناغم الاستراتيجي مع هوية البراند والجمهور مع تطبيق تعديلات المستخدم بدقة.
+${formatInstructions}
+⚠️ قاعدة أمنية حاسمة: يمنع منعاً باتاً تضمين حقل generation_source في الرد.
 
-يجب أن تكون المخرجات كائن JSON صارم ومكتمل يحتوي على الحقول التالية فقط:
-{
-  "caption": "نص الكابشن الكامل الجذاب والمهيأ لإنستغرام باللغة العربية مع إيموجي مناسب وخطاف قوي في البداية",
-  "design_copy": {
-    "headline": "العنوان الرئيسي القصير الجذاب المكتوب داخل الصورة/الفيديو",
-    "subtext": "النص التوضيحي المساعد داخل التصميم",
-    "cta": "النص المكتوب على زر التصميم (مثل: اطلب الآن / اضغط الرابط)"
-  },
-  "post_type": "${targetPostType}",
-  "content_objective": "${targetObjective}",
-  "content_pillar": "${targetPillar}",
-  "design_reference": "توجيه بصري وإخراجي مفصل وواضح للمصمم أو المونتير يشمل المشهد، زاوية التصوير، والإضاءة",
-  "cta": "الدعوة الإعلانية لاتخاذ الإجراء الموجهة في نهاية الكابشن"
-}`;
+المخرجات يجب أن تكون كائن JSON صارم ومكتمل يطابق مواصفات القالب المحدد.`;
 
     const userPrompt = `### سياق البراند:
 - اسم المنتج/البراند: ${plan.product_name}
@@ -253,9 +249,14 @@ ${requestedObjective ? `👉 تغيير الهدف التسويقي إلى: ${re
     }
 
     // 7. Update the single row in content_items table
+    const rawDesignCopy = typeof generated.design_copy === "object" && generated.design_copy !== null ? { ...generated.design_copy } : {};
+    if (rawDesignCopy.slides || rawDesignCopy.scenes) {
+      rawDesignCopy.generation_source = "structured";
+    }
+
     const updatePayload = {
       caption: generated.caption,
-      design_copy: typeof generated.design_copy === "object" ? JSON.stringify(generated.design_copy) : generated.design_copy,
+      design_copy: rawDesignCopy,
       post_type: generated.post_type || targetPostType,
       content_objective: generated.content_objective || targetObjective,
       content_pillar: generated.content_pillar || targetPillar,

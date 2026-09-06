@@ -73,12 +73,17 @@ export default function DayDetailClient({ planId, dayNumber }) {
   // Initialize edit state when entering edit mode
   const handleToggleEdit = () => {
     if (!isEditing && currentItem) {
+      const dc = currentItem.designCopy || currentItem.design_copy || {};
       setEditState({
         caption: currentItem.caption || "",
         design_copy: {
-          headline: currentItem.designCopy?.headline || "",
-          subtext: currentItem.designCopy?.subtext || "",
-          cta: currentItem.designCopy?.cta || "",
+          headline: dc.headline || "",
+          subtext: dc.subtext || "",
+          cta: dc.cta || "",
+          slides: Array.isArray(dc.slides) ? dc.slides : undefined,
+          scenes: Array.isArray(dc.scenes) ? dc.scenes : undefined,
+          hook_line: dc.hookLine || dc.hook_line || undefined,
+          total_duration_sec: dc.totalDurationSec || dc.total_duration_sec || undefined,
         },
         post_type: currentItem.postType || currentItem.post_type,
         content_objective: currentItem.contentObjective || currentItem.content_objective,
@@ -114,8 +119,30 @@ export default function DayDetailClient({ planId, dayNumber }) {
 
     const dcOld = currentItem.designCopy || currentItem.design_copy || {};
     const dcNew = editState.design_copy || {};
-    if (dcNew.headline !== dcOld.headline || dcNew.subtext !== dcOld.subtext || dcNew.cta !== dcOld.cta) {
-      changes.design_copy = dcNew;
+    const hasDcChanged =
+      dcNew.headline !== dcOld.headline ||
+      dcNew.subtext !== dcOld.subtext ||
+      dcNew.cta !== dcOld.cta ||
+      dcNew.hook_line !== (dcOld.hook_line || dcOld.hookLine) ||
+      dcNew.total_duration_sec !== (dcOld.total_duration_sec || dcOld.totalDurationSec) ||
+      JSON.stringify(dcNew.slides) !== JSON.stringify(dcOld.slides) ||
+      JSON.stringify(dcNew.scenes) !== JSON.stringify(dcOld.scenes);
+
+    if (hasDcChanged || changes.post_type) {
+      const sanitizedDc = { ...dcNew };
+      if (editState.post_type === "reel") {
+        delete sanitizedDc.slides;
+      } else if (editState.post_type === "carousel") {
+        delete sanitizedDc.scenes;
+        delete sanitizedDc.hook_line;
+        delete sanitizedDc.total_duration_sec;
+      } else if (editState.post_type === "story" || editState.post_type === "static_post") {
+        delete sanitizedDc.slides;
+        delete sanitizedDc.scenes;
+        delete sanitizedDc.hook_line;
+        delete sanitizedDc.total_duration_sec;
+      }
+      changes.design_copy = sanitizedDc;
     }
 
     if (Object.keys(changes).length === 0) {

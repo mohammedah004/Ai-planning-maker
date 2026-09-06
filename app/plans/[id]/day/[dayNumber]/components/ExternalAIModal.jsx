@@ -64,7 +64,8 @@ export default function ExternalAIModal({
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        setError(json.error?.message || "تعذر تحليل الرد. تأكد من نسخ كود madar-changes كاملاً.");
+        console.warn("[ExternalAIModal] Contract parsing error:", json.error?.code, json.error?.details);
+        setError(json.error?.message || "تعذر تطبيق التعديل المطلوب على هذا المنشور. جرّب تعديل الطلب بما يتوافق مع محتوى اليوم الحالي.");
         setLoading(false);
         return;
       }

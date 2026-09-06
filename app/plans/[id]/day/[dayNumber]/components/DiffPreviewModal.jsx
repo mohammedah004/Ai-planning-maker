@@ -85,6 +85,22 @@ export default function DiffPreviewModal({
         newVal: dcNew.cta,
       });
     }
+    if (dcNew.slides) {
+      diffEntries.push({
+        key: "design_copy.slides",
+        label: "شرائح الكاروسيل (Carousel Slides)",
+        oldVal: dcOld.slides ? `${dcOld.slides.length} شرائح` : "لا توجد شرائح",
+        newVal: `${dcNew.slides.length} شرائح مهيكلة`,
+      });
+    }
+    if (dcNew.scenes) {
+      diffEntries.push({
+        key: "design_copy.scenes",
+        label: "مشاهد سيناريو الريلز (Reel Scenes)",
+        oldVal: dcOld.scenes ? `${dcOld.scenes.length} مشاهد` : "لا توجد مشاهد",
+        newVal: `${dcNew.scenes.length} مشاهد سيناريو (${dcNew.total_duration_sec || dcNew.totalDurationSec || 30} ث)`,
+      });
+    }
   }
 
   if (changes.post_type !== undefined && changes.post_type !== (currentItem.postType || currentItem.post_type)) {

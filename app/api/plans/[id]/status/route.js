@@ -9,6 +9,8 @@ import { expressFetch } from "@/lib/express-client";
  * Polling endpoint to check live generation job status and Google Sheet export URL.
  * (Branches to Express backend if USE_EXPRESS_BACKEND=true, otherwise legacy DB polling)
  */
+export const dynamic = "force-dynamic";
+
 export async function GET(request, { params }) {
   try {
     const { authData, errorResponse } = await requireAuth();

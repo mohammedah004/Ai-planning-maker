@@ -62,7 +62,8 @@ export default function MultiDayExportImportModal({
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        setError(json.error?.message || "تعذر تحليل الرد المتعدد. تأكد من صحة كود madar-changes.");
+        console.warn("[MultiDayExportImportModal] Contract parsing error:", json.error?.code, json.error?.details);
+        setError(json.error?.message || "تعذر تطبيق التعديل المطلوب على الخطة. جرّب تعديل الطلب بما يتوافق مع معيار التعديل.");
         setLoading(false);
         return;
       }

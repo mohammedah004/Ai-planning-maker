@@ -172,39 +172,67 @@ export default function ContentItemCard({ item, planId, strategy = {}, onUpdate 
             </div>
 
             {hasDesignCopy && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                {designCopy.headline && (
-                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
-                    <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
-                      العنوان الرئيسي (Headline)
+              <div className="space-y-3">
+                {/* Structured Carousel slides indicator */}
+                {Array.isArray(designCopy.slides) && designCopy.slides.length > 0 && (
+                  <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/50 flex items-center justify-between text-xs">
+                    <span className="font-bold text-blue-800 dark:text-blue-300">
+                      📚 كاروسيل ({designCopy.slides.length} شرائح)
                     </span>
-                    <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm leading-snug">
-                      {designCopy.headline}
-                    </span>
-                  </div>
-                )}
-
-                {designCopy.subtext && (
-                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
-                    <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
-                      النص الفرعي (Subtext)
-                    </span>
-                    <span className="text-slate-600 dark:text-zinc-300 text-xs leading-snug">
-                      {designCopy.subtext}
+                    <span className="text-[11px] text-blue-700 dark:text-blue-400 font-medium truncate max-w-[220px]">
+                      غلاف: {designCopy.slides[0]?.headline || designCopy.headline || "—"}
                     </span>
                   </div>
                 )}
 
-                {designCopy.cta && (
-                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
-                    <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
-                      زر الإجراء (Button CTA)
+                {/* Structured Reel scenes indicator */}
+                {Array.isArray(designCopy.scenes) && designCopy.scenes.length > 0 && (
+                  <div className="p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/50 flex items-center justify-between text-xs">
+                    <span className="font-bold text-purple-800 dark:text-purple-300">
+                      🎬 سيناريو ريلز ({designCopy.scenes.length} مشاهد • {designCopy.totalDurationSec || designCopy.total_duration_sec || 30} ث)
                     </span>
-                    <span className="inline-block px-2.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-950/60 dark:border-blue-800/60 dark:text-blue-300 font-bold text-xs">
-                      {designCopy.cta}
-                    </span>
+                    {(designCopy.hookLine || designCopy.hook_line) && (
+                      <span className="text-[11px] text-purple-700 dark:text-purple-400 font-medium truncate max-w-[220px]">
+                        الخطاف: "{designCopy.hookLine || designCopy.hook_line}"
+                      </span>
+                    )}
                   </div>
                 )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {designCopy.headline && (
+                    <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+                      <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
+                        العنوان الرئيسي (Headline)
+                      </span>
+                      <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs sm:text-sm leading-snug">
+                        {designCopy.headline}
+                      </span>
+                    </div>
+                  )}
+
+                  {designCopy.subtext && (
+                    <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+                      <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
+                        النص الفرعي (Subtext)
+                      </span>
+                      <span className="text-slate-600 dark:text-zinc-300 text-xs leading-snug">
+                        {designCopy.subtext}
+                      </span>
+                    </div>
+                  )}
+
+                  {designCopy.cta && (
+                    <div className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+                      <span className="block text-[10px] font-bold text-slate-500 dark:text-zinc-400 mb-1 uppercase tracking-wider">
+                        زر الإجراء (Button CTA)
+                      </span>
+                      <span className="inline-block px-2.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-700 dark:bg-blue-950/60 dark:border-blue-800/60 dark:text-blue-300 font-bold text-xs">
+                        {designCopy.cta}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
